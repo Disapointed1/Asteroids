@@ -3,7 +3,9 @@ guid: 57fdc24266decda42a43715701c6f6d0
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - _bulletViewPrefab: {fileID: 5841450915022097561, guid: 2994d889b40572548a64e02e14a2fe70, type: 3}
+  - _asteroidViewPrefab: {fileID: 6221040552917550481, guid: 2e926e649aae9684ebef27db8ba761ef, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

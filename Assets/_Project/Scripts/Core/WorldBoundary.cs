@@ -6,6 +6,9 @@ public class WorldBoundary
     private readonly float _halfWidth;
     private readonly float _halfHeight;
 
+    public float HalfWidth => _halfWidth;
+    public float HalfHeight => _halfHeight;
+
     public WorldBoundary(float width, float height)
     {
         _halfWidth = width / 2f;

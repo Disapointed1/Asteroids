@@ -17,4 +17,14 @@ public class KeyboardInputProvider : IInputProvider
             return -1f;
         return 0f;
     }
+
+    public bool GetFireInput()
+    {
+        return Input.GetKeyDown(KeyCode.Space);
+    }
+
+    public bool GetLaserInput()
+    {
+        return Input.GetKeyDown(KeyCode.Mouse0);
+    }
 }
