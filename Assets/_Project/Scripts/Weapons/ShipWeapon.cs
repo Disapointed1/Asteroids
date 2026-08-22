@@ -24,7 +24,7 @@ public class ShipWeapon
     {
         Bullet bullet = _bulletPool.Get();
         bullet.Fire(position, direction * speed, rotation);
-        ReturnBulletAfterDelay(bullet, 2f).Forget();
+        ReturnBulletAfterDelay(bullet, 3f).Forget();
     }
 
 

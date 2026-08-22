@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using UnityEngine;
+
 public class CollisionSystem
 {
     private readonly Ship _ship;
@@ -17,17 +20,30 @@ public class CollisionSystem
 
     public void CheckCollisions()
     {
+        List<Bullet> bulletsToReturn = new List<Bullet>();
+        List<Asteroid> asteroidsToHit = new List<Asteroid>();
+
         foreach (Bullet bullet in _bulletPool.InUseObjects)
         {
             foreach (Asteroid asteroid in _asteroidPool.InUseObjects)
             {
                 if (_collisionDetector.CheckCollision(bullet.PhysicsMovement, asteroid.Physics))
                 {
-                    asteroid.TakeHit();
-                    _bulletPool.Return(bullet);
+                   asteroidsToHit.Add(asteroid);
+                   bulletsToReturn.Add(bullet);
                 }
             }
 
+        }
+
+        foreach (Bullet bullet in bulletsToReturn)
+        {
+            _bulletPool.Return(bullet);
+        }
+
+        foreach (Asteroid asteroid in asteroidsToHit)
+        {
+            asteroid.TakeHit();
         }
 
         foreach (Asteroid asteroid in _asteroidPool.InUseObjects)

@@ -7,6 +7,9 @@ public class AsteroidSpawner
     private readonly ObjectPool<Asteroid> _asteroidPool;
     private readonly WorldBoundary _boundary;
     private readonly float _asteroidSpeed;
+    private readonly AsteroidFactory _asteroidFactory;
+
+    private float _smallerFragmentSpeed = 1.5f;
 
     public ObjectPool<Asteroid> AsteroidPool => _asteroidPool;
 
@@ -16,6 +19,7 @@ public class AsteroidSpawner
         _asteroidPool = new ObjectPool<Asteroid>(()=> asteroidFactory.Create(AsteroidSize.Large));
         _boundary = boundary;
         _asteroidSpeed = asteroidSpeed;
+        _asteroidFactory = asteroidFactory;
     }
 
     public void StartSpawning()
@@ -31,6 +35,7 @@ public class AsteroidSpawner
             await UniTask.Delay(TimeSpan.FromSeconds(spawnRate));
 
             Asteroid asteroid = _asteroidPool.Get();
+            asteroid.OnDestroyed += HandleAsteroidDestroyed;
             Vector2 position = GetRandomSpawnPosition();
             asteroid.Spawn(position,_asteroidSpeed);
         }
@@ -62,6 +67,35 @@ public class AsteroidSpawner
                 break;
         }
         return new Vector2(x, y);
+    }
+
+    private void HandleAsteroidDestroyed(Asteroid asteroid)
+    {
+        asteroid.OnDestroyed -= HandleAsteroidDestroyed;
+        Vector2 position = asteroid.Physics.Position;
+        AsteroidSize size = asteroid.Size;
+        _asteroidPool.Return(asteroid);
+
+        if (size == AsteroidSize.Large)
+        {
+            SpawnFragments(position, AsteroidSize.Medium, 2);
+        }
+        else if (size == AsteroidSize.Medium)
+        {
+            SpawnFragments(position, AsteroidSize.Small, 2);
+        }
+    }
+
+    private void SpawnFragments(Vector2 position, AsteroidSize size, int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            Asteroid fragment = _asteroidFactory.Create(size);
+            _asteroidPool.Register(fragment);
+            fragment.OnDestroyed += HandleAsteroidDestroyed;
+            float fragmentSpeed = _asteroidSpeed * _smallerFragmentSpeed;
+            fragment.Spawn(position,  fragmentSpeed);
+        }
     }
 
 }

@@ -14,5 +14,6 @@ public class ProjectInstaller : MonoInstaller
         Container.Bind<BulletFactory>().AsSingle().WithArguments(_bulletViewPrefab,0.1f);
         Container.Bind<LaserView>().FromComponentInHierarchy().AsSingle();
         Container.Bind<AsteroidFactory>().AsSingle().WithArguments(_asteroidViewPrefab);
+        Container.Bind<CollisionSystemTicker>().FromComponentInHierarchy().AsSingle();
     }
 }

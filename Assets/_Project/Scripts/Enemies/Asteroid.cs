@@ -28,7 +28,7 @@ public class Asteroid : IPoolable
 
     public void OnDespawn()
     {
-
+        LinkedView.SetActive(false);
     }
 
     public void TakeHit()
@@ -43,6 +43,9 @@ public class Asteroid : IPoolable
         Vector2 direction = new Vector2(Mathf.Cos(randomAngle *  Mathf.Deg2Rad), Mathf.Sin(randomAngle * Mathf.Deg2Rad));
         Physics.Velocity = direction * speed;
         LinkedView.SetActive(true);
+        LinkedView.GetComponent<AsteroidView>().SyncPosition();
     }
+
+
 
 }

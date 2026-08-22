@@ -40,4 +40,9 @@ public class ObjectPool<T> where T: IPoolable
         item.OnDespawn();
         _availableObjects.Add(item);
     }
+
+    public void Register(T item)
+    {
+        _inUseObjects.Add(item);
+    }
 }

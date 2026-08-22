@@ -7,13 +7,11 @@ public class ShipView : MonoBehaviour
 
     private Ship _ship;
     private ShipController _shipController;
-    private CollisionSystem _collisionSystem;
 
-    public void Initialize(Ship ship, ShipController shipController, CollisionSystem collisionSystem)
+    public void Initialize(Ship ship, ShipController shipController)
     {
         _ship = ship;
         _shipController = shipController;
-        _collisionSystem = collisionSystem;
         _ship.OnInvulnerabilityStarted += HandleInvulnerabilityStarted;
         _ship.OnInvulnerabilityEnded += HandleInvulnerabilityEnded;
     }
@@ -33,6 +31,7 @@ public class ShipView : MonoBehaviour
 
     private void HandleInvulnerabilityStarted()
     {
+        Debug.Log("Particles Play called, particles null: " + (_particles == null));
         _particles.Play();
     }
 
