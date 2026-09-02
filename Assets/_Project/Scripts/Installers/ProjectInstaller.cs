@@ -5,6 +5,7 @@ public class ProjectInstaller : MonoInstaller
 {
     [SerializeField] private BulletView _bulletViewPrefab;
     [SerializeField] private AsteroidView _asteroidViewPrefab;
+    [SerializeField] private UfoView _ufoViewPrefab;
 
     public override void InstallBindings()
     {
@@ -15,5 +16,7 @@ public class ProjectInstaller : MonoInstaller
         Container.Bind<LaserView>().FromComponentInHierarchy().AsSingle();
         Container.Bind<AsteroidFactory>().AsSingle().WithArguments(_asteroidViewPrefab);
         Container.Bind<CollisionSystemTicker>().FromComponentInHierarchy().AsSingle();
+        Container.Bind<UfoFactory>().AsSingle().WithArguments(_ufoViewPrefab, 0.4f, 1f);
+        Container.Bind<ShipStatusView>().FromComponentInHierarchy().AsSingle();
     }
 }

@@ -5,7 +5,6 @@ public class AsteroidFactory
     private readonly DiContainer _container;
     private readonly AsteroidView _asteroidViewPrefab;
 
-
     public AsteroidFactory(DiContainer container,  AsteroidView asteroidViewPrefab)
     {
         _container = container;

@@ -1,13 +1,21 @@
 using System;
 using UnityEngine;
 
-public class Asteroid : IPoolable
+public class Asteroid : IPoolable, IRewardable
 {
     public AsteroidSize Size { get; private set; }
     public GameObject LinkedView { get; private set; }
     public PhysicsMovement Physics { get; private set; }
 
     public event Action <Asteroid> OnDestroyed;
+
+    public EnemyType Type => Size switch
+    {
+        AsteroidSize.Large => EnemyType.AsteroidLarge,
+        AsteroidSize.Medium => EnemyType.AsteroidMedium,
+        AsteroidSize.Small => EnemyType.AsteroidSmall,
+        _ => EnemyType.AsteroidLarge
+    };
 
     public Asteroid(float raduis, AsteroidSize size)
     {
