@@ -1,0 +1,7 @@
+{
+  "AsteroidSpeed": 2,
+  "UfoSpeed": 3,
+  "AsteroidLargeRadius": 1,
+  "AsteroidMediumRadius": 0.6,
+  "AsteroidSmallRadius": 0.3
+}

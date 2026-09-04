@@ -10,16 +10,18 @@ public class UfoSpawner
    private readonly WorldBoundary _boundary;
    private readonly float _ufoSpeed;
    private readonly UfoFactory _ufoFactory;
+   private readonly EnemyCounterTracker _counterTracker;
 
    public ObjectPool<Ufo> UfoPool => _ufoPool;
 
-   public UfoSpawner(UfoFactory ufoFactory, WorldBoundary boundary, float ufoSpeed, IShipInfo shipInfo)
+   public UfoSpawner(UfoFactory ufoFactory, WorldBoundary boundary, float ufoSpeed, IShipInfo shipInfo, EnemyCounterTracker  counterTracker)
    {
       _ufoPool = new ObjectPool<Ufo>((() => ufoFactory.CreateUfo(_shipInfo)));
       _boundary = boundary;
       _ufoSpeed = ufoSpeed;
       _ufoFactory = ufoFactory;
       _shipInfo = shipInfo;
+      _counterTracker = counterTracker;
    }
 
    public void StartSpawning()
@@ -33,10 +35,14 @@ public class UfoSpawner
          float spawnRate = Random.Range(1f, 5f);
          await UniTask.Delay(TimeSpan.FromSeconds(spawnRate));
 
+         if(!_counterTracker.CanSpawn())
+            continue;
+
          Ufo ufo =  _ufoPool.Get();
          ufo.OnDestroyed += HandleUfoDestroyed;
          Vector2 position = GetRandomSpawnPosition();
          ufo.SetPosition(position);
+         _counterTracker.RegisterSpawned();
       }
    }
 
@@ -71,6 +77,7 @@ public class UfoSpawner
    {
       ufo.OnDestroyed -= HandleUfoDestroyed;
       _ufoPool.Return(ufo);
+      _counterTracker.RegisterDestroyed();
    }
 
 }

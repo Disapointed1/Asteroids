@@ -9,14 +9,18 @@ public class CollisionSystem
     private readonly ObjectPool<Ufo> _ufoPool;
     private readonly CollisionDetector _collisionDetector;
     private readonly CollisionResolver _collisionResolver;
+    private readonly GameScore _score;
+    private readonly RewardService _rewardService;
 
 
-    public CollisionSystem(Ship ship, ObjectPool<Bullet> bulletPool, ObjectPool<Asteroid> asteroidPool,  ObjectPool<Ufo> ufoPool)
+    public CollisionSystem(Ship ship, ObjectPool<Bullet> bulletPool, ObjectPool<Asteroid> asteroidPool,  ObjectPool<Ufo> ufoPool, GameScore score, RewardService rewardService)
     {
         _ship = ship;
         _ufoPool  = ufoPool;
         _bulletPool = bulletPool;
         _asteroidPool = asteroidPool;
+        _score = score;
+        _rewardService = rewardService;
         _collisionDetector = new CollisionDetector();
         _collisionResolver = new CollisionResolver();
         _ship.OnLaserFired += HandleLaserFired;
@@ -47,7 +51,6 @@ public class CollisionSystem
                     bulletsToReturn.Add(bullet);
                 }
             }
-
         }
 
         foreach (Bullet bullet in bulletsToReturn)
@@ -57,11 +60,15 @@ public class CollisionSystem
 
         foreach (Asteroid asteroid in asteroidsToHit)
         {
+            int reward = _rewardService.GetReward(asteroid.Type);
+            _score.AddScore(reward);
             asteroid.TakeHit();
         }
 
         foreach (Ufo ufo in ufosToHit)
         {
+            int reward = _rewardService.GetReward(ufo.Type);
+            _score.AddScore(reward);
             ufo.TakeHit();
         }
 
@@ -109,11 +116,15 @@ public class CollisionSystem
 
         foreach (Asteroid asteroid in asteroidsToHit)
         {
+            int reward = _rewardService.GetReward(asteroid.Type);
+            _score.AddScore(reward);
             asteroid.TakeHit();
         }
 
         foreach (Ufo ufo in ufosToHit)
         {
+            int reward = _rewardService.GetReward(ufo.Type);
+            _score.AddScore(reward);
             ufo.TakeHit();
         }
     }

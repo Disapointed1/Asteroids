@@ -6,6 +6,7 @@ public class Asteroid : IPoolable, IRewardable
     public AsteroidSize Size { get; private set; }
     public GameObject LinkedView { get; private set; }
     public PhysicsMovement Physics { get; private set; }
+    public bool IsFragment {get; private set;}
 
     public event Action <Asteroid> OnDestroyed;
 
@@ -42,6 +43,11 @@ public class Asteroid : IPoolable, IRewardable
     public void TakeHit()
     {
         OnDestroyed?.Invoke(this);
+    }
+
+    public void MarkAsFragment()
+    {
+        IsFragment =  true;
     }
 
     public void Spawn(Vector2 position, float speed)

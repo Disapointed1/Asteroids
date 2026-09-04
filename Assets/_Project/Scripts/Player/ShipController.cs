@@ -10,6 +10,7 @@ public class ShipController
     private readonly WorldBoundary _worldBoundary;
     private readonly float _bulletSpeed;
 
+
     public ShipController(Ship ship, IInputProvider input, float rotationSpeed, float thrustPower, WorldBoundary worldBoundary, ShipWeapon shipWeapon,  float bulletSpeed)
     {
         _ship =  ship;
@@ -19,12 +20,10 @@ public class ShipController
         _worldBoundary = worldBoundary;
         _shipWeapon = shipWeapon;
         _bulletSpeed = bulletSpeed;
-
     }
 
     public void Tick(float deltaTime)
     {
-
         Vector2 movementInput =  _input.GetMovementInput();
         float rotationInput = _input.GetRotationInput();
 
@@ -37,6 +36,8 @@ public class ShipController
             _ship.Physics.ApplyAcceleration(thrustDirection * _thrustPower, deltaTime);
         else
             _ship.Physics.ApplyDrag(deltaTime);
+
+        _ship.Physics.ClampVelocity();
         _ship.Physics.UpdatePosition(deltaTime);
         _worldBoundary.WrapPosition(_ship.Physics);
 

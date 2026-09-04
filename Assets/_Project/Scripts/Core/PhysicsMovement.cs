@@ -8,7 +8,14 @@ public class PhysicsMovement
     public float DragCoefficient { get; set; }
     public float Mass { get; set; }
 
-    public void ApplyAcceleration(Vector2 acceleration, float deltaTime)
+    public float MaxSpeed { get; set; }
+
+    public void ClampVelocity()
+    {
+        Velocity = Vector2.ClampMagnitude(Velocity, MaxSpeed);
+    }
+
+public void ApplyAcceleration(Vector2 acceleration, float deltaTime)
     {
         Velocity += acceleration * deltaTime;
     }
