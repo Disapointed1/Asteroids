@@ -31,7 +31,6 @@ public class ShipView : MonoBehaviour
 
     private void HandleInvulnerabilityStarted()
     {
-        Debug.Log("Particles Play called, particles null: " + (_particles == null));
         _particles.Play();
     }
 

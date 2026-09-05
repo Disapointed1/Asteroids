@@ -9,7 +9,7 @@ public class AsteroidView : MonoBehaviour
     public void Initialize(Asteroid asteroid)
     {
         _asteroid = asteroid;
-        ApplyScaleForSize(asteroid.Size);
+        transform.localScale = Vector3.one * asteroid.Physics.Radius;
     }
 
     public void FixedUpdate()
@@ -21,17 +21,5 @@ public class AsteroidView : MonoBehaviour
     public void SyncPosition()
     {
         transform.position = _asteroid.Physics.Position;
-    }
-
-    private void ApplyScaleForSize(AsteroidSize size)
-    {
-        float scale = size switch
-        {
-            AsteroidSize.Large => 1f,
-            AsteroidSize.Medium => 0.6f,
-            AsteroidSize.Small => 0.3f,
-            _ => 1f
-        };
-        transform.localScale = Vector3.one * scale;
     }
 }

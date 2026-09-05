@@ -3,5 +3,7 @@
   "UfoSpeed": 3,
   "AsteroidLargeRadius": 1,
   "AsteroidMediumRadius": 0.6,
-  "AsteroidSmallRadius": 0.3
+  "AsteroidSmallRadius": 0.3,
+  "UfoRadius": 0.4,
+  "UfoMass": 1
 }

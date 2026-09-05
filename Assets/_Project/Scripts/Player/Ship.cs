@@ -4,11 +4,13 @@ using UnityEngine;
 
 public class Ship : IShipInfo
 {
+    private const float InvulnerabilityDuration = 3f;
+
     private float _lastChargeTime;
 
-    public PhysicsMovement Physics { get;  private set ;}
-    public int Health { get; private set; } = 3;
-    public bool IsInvulnerable { get; private set; } = false ;
+    public PhysicsMovement Physics { get; private set; }
+    public int Health { get; private set; }
+    public bool IsInvulnerable { get; private set; } = false;
     public float Rotation { get; private set; } = 0;
     public int MaxLaserCharges { get; private set; } = 3;
     public int CurrentLaserCharges { get; private set; } = 3;
@@ -31,13 +33,14 @@ public class Ship : IShipInfo
     {
         IsInvulnerable = true;
         OnInvulnerabilityStarted?.Invoke();
-        await UniTask.Delay(TimeSpan.FromSeconds(3));
+        await UniTask.Delay(TimeSpan.FromSeconds(InvulnerabilityDuration));
         IsInvulnerable = false;
         OnInvulnerabilityEnded?.Invoke();
     }
 
-    public Ship(float radius, float mass, float dragCoefficient, float maxSpeed)
+    public Ship(float radius, float mass, float dragCoefficient, float maxSpeed, int maxHealth)
     {
+        Health = maxHealth;
         Physics = new PhysicsMovement
         {
             Radius = radius,
@@ -58,8 +61,8 @@ public class Ship : IShipInfo
             OnDied?.Invoke();
         else
             InvulnerabilityTimer().Forget();
-
     }
+
     public void ApplyRotation(float rotation)
     {
         Rotation += rotation;
@@ -67,7 +70,7 @@ public class Ship : IShipInfo
 
     public bool TryUseLaserCharge()
     {
-        if(CurrentLaserCharges <= 0)
+        if (CurrentLaserCharges <= 0)
             return false;
         CurrentLaserCharges--;
         OnLaserChargesChanged?.Invoke();
@@ -92,5 +95,4 @@ public class Ship : IShipInfo
             }
         }
     }
-
 }

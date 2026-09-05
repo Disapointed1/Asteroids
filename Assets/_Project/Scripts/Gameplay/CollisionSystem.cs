@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class CollisionSystem
 {
+    private const float LaserRange = 20f;
+
     private readonly Ship _ship;
     private readonly ObjectPool<Bullet> _bulletPool;
     private readonly ObjectPool<Asteroid> _asteroidPool;
@@ -12,11 +14,10 @@ public class CollisionSystem
     private readonly GameScore _score;
     private readonly RewardService _rewardService;
 
-
-    public CollisionSystem(Ship ship, ObjectPool<Bullet> bulletPool, ObjectPool<Asteroid> asteroidPool,  ObjectPool<Ufo> ufoPool, GameScore score, RewardService rewardService)
+    public CollisionSystem(Ship ship, ObjectPool<Bullet> bulletPool, ObjectPool<Asteroid> asteroidPool, ObjectPool<Ufo> ufoPool, GameScore score, RewardService rewardService)
     {
         _ship = ship;
-        _ufoPool  = ufoPool;
+        _ufoPool = ufoPool;
         _bulletPool = bulletPool;
         _asteroidPool = asteroidPool;
         _score = score;
@@ -38,8 +39,8 @@ public class CollisionSystem
             {
                 if (_collisionDetector.CheckCollision(bullet.PhysicsMovement, asteroid.Physics))
                 {
-                   asteroidsToHit.Add(asteroid);
-                   bulletsToReturn.Add(bullet);
+                    asteroidsToHit.Add(asteroid);
+                    bulletsToReturn.Add(bullet);
                 }
             }
 
@@ -60,15 +61,13 @@ public class CollisionSystem
 
         foreach (Asteroid asteroid in asteroidsToHit)
         {
-            int reward = _rewardService.GetReward(asteroid.Type);
-            _score.AddScore(reward);
+            ApplyReward(asteroid);
             asteroid.TakeHit();
         }
 
         foreach (Ufo ufo in ufosToHit)
         {
-            int reward = _rewardService.GetReward(ufo.Type);
-            _score.AddScore(reward);
+            ApplyReward(ufo);
             ufo.TakeHit();
         }
 
@@ -80,6 +79,7 @@ public class CollisionSystem
                 _ship.TakeDamage(1);
             }
         }
+
         foreach (Ufo ufo in _ufoPool.InUseObjects)
         {
             if (!_ship.IsInvulnerable && _collisionDetector.CheckCollision(_ship.Physics, ufo.Physics))
@@ -94,38 +94,38 @@ public class CollisionSystem
     {
         Vector2 direction = new Vector2(-Mathf.Sin(_ship.Rotation * Mathf.Deg2Rad), Mathf.Cos(_ship.Rotation * Mathf.Deg2Rad));
         Vector2 start = _ship.Physics.Position;
-        Vector2 end = start + direction * 20f;
+        Vector2 end = start + direction * LaserRange;
 
         List<Asteroid> asteroidsToHit = new List<Asteroid>();
         foreach (Asteroid asteroid in _asteroidPool.InUseObjects)
         {
             if (_collisionDetector.CheckLaserHit(start, end, asteroid.Physics))
-            {
                 asteroidsToHit.Add(asteroid);
-            }
         }
 
-        List <Ufo> ufosToHit = new List<Ufo>();
+        List<Ufo> ufosToHit = new List<Ufo>();
         foreach (Ufo ufo in _ufoPool.InUseObjects)
         {
             if (_collisionDetector.CheckLaserHit(start, end, ufo.Physics))
-            {
                 ufosToHit.Add(ufo);
-            }
         }
 
         foreach (Asteroid asteroid in asteroidsToHit)
         {
-            int reward = _rewardService.GetReward(asteroid.Type);
-            _score.AddScore(reward);
+            ApplyReward(asteroid);
             asteroid.TakeHit();
         }
 
         foreach (Ufo ufo in ufosToHit)
         {
-            int reward = _rewardService.GetReward(ufo.Type);
-            _score.AddScore(reward);
+            ApplyReward(ufo);
             ufo.TakeHit();
         }
+    }
+
+    private void ApplyReward(IRewardable rewardable)
+    {
+        int reward = _rewardService.GetReward(rewardable.Type);
+        _score.AddScore(reward);
     }
 }

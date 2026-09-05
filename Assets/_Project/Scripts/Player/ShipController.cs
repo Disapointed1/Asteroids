@@ -48,7 +48,8 @@ public class ShipController
         if (_input.GetFireInput() && !_ship.IsInvulnerable)
         {
             Vector2 thrustDirection =GetThrustDirection();
-            _shipWeapon.Fire(_ship.Physics.Position, thrustDirection, _bulletSpeed, _ship.Rotation);
+            ICommand command = new FireBulletCommand(_shipWeapon, _ship.Physics.Position,  thrustDirection,_bulletSpeed, _ship.Rotation);
+            command.Execute();
         }
     }
 
@@ -56,7 +57,8 @@ public class ShipController
     {
         if (_input.GetLaserInput() && !_ship.IsInvulnerable)
         {
-            _ship.TryUseLaserCharge();
+            ICommand command = new FireLaserCommand(_ship);
+            command.Execute();
         }
     }
 

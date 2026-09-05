@@ -1,8 +1,12 @@
 {
   "MaxHealth": 3,
   "BulletSpeed": 15,
-  "FireRate": 0.5,
+  "FireRate": 5,
   "ThrustPower": 5,
   "RotationSpeed": 180,
-  "MaxSpeed": 10
+  "MaxSpeed": 10,
+  "ShipRadius": 0.5,
+  "ShipMass": 1,
+  "ShipDragCoefficient": 0.5,
+  "BulletRadius": 0.1
 }

@@ -1,8 +1,9 @@
-
 using UnityEngine;
 
 public class WorldBoundary
 {
+    private const float SpawnMargin = 1f;
+
     private readonly float _halfWidth;
     private readonly float _halfHeight;
 
@@ -32,4 +33,30 @@ public class WorldBoundary
         body.Position = position;
     }
 
+    public Vector2 GetRandomPositionOutside()
+    {
+        int side = Random.Range(0, 4);
+        float x, y;
+
+        switch (side)
+        {
+            case 0:
+                x = Random.Range(-_halfWidth, _halfWidth);
+                y = _halfHeight + SpawnMargin;
+                break;
+            case 1:
+                x = Random.Range(-_halfWidth, _halfWidth);
+                y = -_halfHeight - SpawnMargin;
+                break;
+            case 2:
+                x = -_halfWidth - SpawnMargin;
+                y = Random.Range(-_halfHeight, _halfHeight);
+                break;
+            default:
+                x = _halfWidth + SpawnMargin;
+                y = Random.Range(-_halfHeight, _halfHeight);
+                break;
+        }
+        return new Vector2(x, y);
+    }
 }

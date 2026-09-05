@@ -1,27 +1,36 @@
 using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using Zenject;
 
 public class AsteroidSpawner
 {
+    private const float MinSpawnDelay = 1f;
+    private const float MaxSpawnDelay = 5f;
+    private const int FragmentsPerSplit = 2;
+
     private readonly ObjectPool<Asteroid> _asteroidPool;
     private readonly WorldBoundary _boundary;
     private readonly float _asteroidSpeed;
     private readonly AsteroidFactory _asteroidFactory;
     private readonly EnemyCounterTracker _enemyCounter;
+    private readonly SignalBus _signalBus;
+
+    private bool _isGameOver;
 
     private float _smallerFragmentSpeed = 1.5f;
 
     public ObjectPool<Asteroid> AsteroidPool => _asteroidPool;
 
-
-    public AsteroidSpawner(AsteroidFactory asteroidFactory,WorldBoundary boundary, float asteroidSpeed, EnemyCounterTracker enemyCounter)
+    public AsteroidSpawner(AsteroidFactory asteroidFactory, WorldBoundary boundary, float asteroidSpeed, EnemyCounterTracker enemyCounter, SignalBus signalBus)
     {
-        _asteroidPool = new ObjectPool<Asteroid>(()=> asteroidFactory.Create(AsteroidSize.Large));
+        _asteroidPool = new ObjectPool<Asteroid>(() => asteroidFactory.Create(AsteroidSize.Large));
         _boundary = boundary;
         _asteroidSpeed = asteroidSpeed;
         _asteroidFactory = asteroidFactory;
         _enemyCounter = enemyCounter;
+        _signalBus = signalBus;
+        _signalBus.Subscribe<GameOverSignal>(HandleGameOver);
     }
 
     public void StartSpawning()
@@ -33,46 +42,24 @@ public class AsteroidSpawner
     {
         while (true)
         {
-            float spawnRate = UnityEngine.Random.Range(1f, 5f);
+            if (_isGameOver)
+                break;
+
+            float spawnRate = UnityEngine.Random.Range(MinSpawnDelay, MaxSpawnDelay);
             await UniTask.Delay(TimeSpan.FromSeconds(spawnRate));
 
-            if(!_enemyCounter.CanSpawn())
+            if (_isGameOver)
+                break;
+
+            if (!_enemyCounter.CanSpawn())
                 continue;
 
             Asteroid asteroid = _asteroidPool.Get();
             asteroid.OnDestroyed += HandleAsteroidDestroyed;
-            Vector2 position = GetRandomSpawnPosition();
-            asteroid.Spawn(position,_asteroidSpeed);
+            Vector2 position = _boundary.GetRandomPositionOutside();
+            asteroid.Spawn(position, _asteroidSpeed);
             _enemyCounter.RegisterSpawned();
         }
-
-    }
-
-    private Vector2 GetRandomSpawnPosition()
-    {
-        int side = UnityEngine.Random.Range(0, 4);
-        float x, y;
-
-        switch (side)
-        {
-            case 0:
-                x  = UnityEngine.Random.Range(-_boundary.HalfWidth, _boundary.HalfWidth);
-                y = _boundary.HalfHeight + 1f;
-                break;
-            case 1:
-                x = UnityEngine.Random.Range(-_boundary.HalfWidth, _boundary.HalfWidth);
-                y = -_boundary.HalfHeight - 1f;
-                break;
-            case 2:
-                x = -_boundary.HalfWidth - 1f;
-                y = UnityEngine.Random.Range(-_boundary.HalfHeight, _boundary.HalfHeight);
-                break;
-            default:
-                x = _boundary.HalfWidth + 1f;
-                y = UnityEngine.Random.Range(-_boundary.HalfHeight, _boundary.HalfHeight);
-                break;
-        }
-        return new Vector2(x, y);
     }
 
     private void HandleAsteroidDestroyed(Asteroid asteroid)
@@ -87,13 +74,9 @@ public class AsteroidSpawner
             _enemyCounter.RegisterDestroyed();
 
         if (size == AsteroidSize.Large)
-        {
-            SpawnFragments(position, AsteroidSize.Medium, 2);
-        }
+            SpawnFragments(position, AsteroidSize.Medium, FragmentsPerSplit);
         else if (size == AsteroidSize.Medium)
-        {
-            SpawnFragments(position, AsteroidSize.Small, 2);
-        }
+            SpawnFragments(position, AsteroidSize.Small, FragmentsPerSplit);
     }
 
     private void SpawnFragments(Vector2 position, AsteroidSize size, int count)
@@ -105,8 +88,12 @@ public class AsteroidSpawner
             _asteroidPool.Register(fragment);
             fragment.OnDestroyed += HandleAsteroidDestroyed;
             float fragmentSpeed = _asteroidSpeed * _smallerFragmentSpeed;
-            fragment.Spawn(position,  fragmentSpeed);
+            fragment.Spawn(position, fragmentSpeed);
         }
     }
 
+    private void HandleGameOver()
+    {
+        _isGameOver = true;
+    }
 }

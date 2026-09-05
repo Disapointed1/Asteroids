@@ -3,7 +3,6 @@ using Zenject;
 
 public class GameBootstrapper : IInitializable
 {
-
     private readonly BulletFactory _bulletFactory;
     private readonly ShipView _shipView;
     private readonly LaserView _laserView;
@@ -16,10 +15,14 @@ public class GameBootstrapper : IInitializable
     private readonly Joystick _joystick;
     private readonly TouchButton _fireButton;
     private readonly TouchButton _laserButton;
+    private readonly FullScreenAdService _fullScreenAdService;
+    private readonly SignalBus _signalBus;
+    private readonly GameConfigFacade _configFacade;
 
-    public GameBootstrapper(ShipView shipView,  BulletFactory bulletFactory, LaserView laserView, AsteroidFactory asteroidFactory, CollisionSystemTicker ticker,
-        UfoFactory ufoFactory,  ShipStatusView shipStatusView, GameScoreView gameScoreView,
-        GameOverView gameOverView, Joystick joystick,[Inject(Id = "Fire")]TouchButton fireButton, [Inject(Id = "Laser")]TouchButton laserButton)
+    public GameBootstrapper(ShipView shipView, BulletFactory bulletFactory, LaserView laserView, AsteroidFactory asteroidFactory, CollisionSystemTicker ticker,
+        UfoFactory ufoFactory, ShipStatusView shipStatusView, GameScoreView gameScoreView,
+        GameOverView gameOverView, Joystick joystick, [Inject(Id = "Fire")] TouchButton fireButton, [Inject(Id = "Laser")] TouchButton laserButton,
+        FullScreenAdService fullScreenAdService, SignalBus signalBus, GameConfigFacade configFacade)
     {
         _bulletFactory = bulletFactory;
         _shipView = shipView;
@@ -33,16 +36,19 @@ public class GameBootstrapper : IInitializable
         _joystick = joystick;
         _fireButton = fireButton;
         _laserButton = laserButton;
+        _fullScreenAdService = fullScreenAdService;
+        _signalBus = signalBus;
+        _configFacade = configFacade;
     }
 
     public void Initialize()
     {
-        PlayerConfig playerConfig = ConfigLoader.Load<PlayerConfig>("player_config");
-        EnemyConfig enemyConfig = ConfigLoader.Load<EnemyConfig>("enemy_config");
-        WorldConfig worldConfig = ConfigLoader.Load<WorldConfig>("world_config");
+        FirebaseAnalyticsService analyticsService = new FirebaseAnalyticsService();
+        analyticsService.LogEvent("game_started");
 
-        EnemyCounterTracker enemyCounterTracker = new EnemyCounterTracker(worldConfig.MaxEnemiesOnMap);
+        SceneLoader sceneLoader = new SceneLoader();
 
+        EnemyCounterTracker enemyCounterTracker = new EnemyCounterTracker(_configFacade.World.MaxEnemiesOnMap);
 
         IInputProvider inputProvider;
 
@@ -58,8 +64,7 @@ public class GameBootstrapper : IInitializable
             _laserButton.gameObject.SetActive(false);
         }
 
-
-    GameScore score = new GameScore();
+        GameScore score = new GameScore();
         GameScoreViewModel gameScoreViewModel = new GameScoreViewModel(score);
         _scoreView.Initialize(gameScoreViewModel);
 
@@ -68,31 +73,30 @@ public class GameBootstrapper : IInitializable
         float height = Camera.main.orthographicSize * 2f;
         float width = height * Camera.main.aspect;
 
-        ShipWeapon shipWeapon = new ShipWeapon(_bulletFactory);
+        ShipWeapon shipWeapon = new ShipWeapon(_bulletFactory, _configFacade.Player.FireRate);
         WorldBoundary worldBoundary = new WorldBoundary(width, height);
 
-        AsteroidSpawner asteroidSpawner = new AsteroidSpawner(_asteroidFactory,worldBoundary, enemyConfig.AsteroidSpeed, enemyCounterTracker);
+        AsteroidSpawner asteroidSpawner = new AsteroidSpawner(_asteroidFactory, worldBoundary, _configFacade.Enemy.AsteroidSpeed, enemyCounterTracker, _signalBus);
         asteroidSpawner.StartSpawning();
 
-        Ship ship = new Ship(0.5f, 1f, 0.5f, playerConfig.MaxSpeed);
+        Ship ship = new Ship(_configFacade.Player.ShipRadius, _configFacade.Player.ShipMass, _configFacade.Player.ShipDragCoefficient, _configFacade.Player.MaxSpeed, _configFacade.Player.MaxHealth);
 
         ShipStatusViewModel shipStatusViewModel = new ShipStatusViewModel(ship);
         _shipStatusView.Initialize(shipStatusViewModel);
 
+        GameOverViewModel gameOverViewModel = new GameOverViewModel(ship, score, analyticsService, _fullScreenAdService, _signalBus);
+        _gameOverView.Initialize(gameOverViewModel, sceneLoader);
 
-        GameOverViewModel gameOverViewModel = new GameOverViewModel(ship, score);
-        _gameOverView.Initialize(gameOverViewModel);
-
-        ShipController shipController = new ShipController(ship, inputProvider, playerConfig.RotationSpeed, playerConfig.ThrustPower, worldBoundary, shipWeapon, playerConfig.BulletSpeed);
+        ShipController shipController = new ShipController(ship, inputProvider, _configFacade.Player.RotationSpeed, _configFacade.Player.ThrustPower, worldBoundary, shipWeapon, _configFacade.Player.BulletSpeed);
         _laserView.Initialize(ship);
 
-        UfoSpawner ufoSpawner = new UfoSpawner(_ufoFactory, worldBoundary, enemyConfig.UfoSpeed, ship, enemyCounterTracker);
+        UfoSpawner ufoSpawner = new UfoSpawner(_ufoFactory, worldBoundary, _configFacade.Enemy.UfoSpeed, ship, enemyCounterTracker, _signalBus);
         CollisionSystem collisionSystem =
             new CollisionSystem(ship, shipWeapon.BulletPool, asteroidSpawner.AsteroidPool, ufoSpawner.UfoPool, score, rewardService);
 
         _ticker.Initialize(collisionSystem);
 
-        _shipView.Initialize(ship,shipController);
+        _shipView.Initialize(ship, shipController);
 
         ufoSpawner.StartSpawning();
     }
