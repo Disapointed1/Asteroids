@@ -3,20 +3,28 @@ using UnityEngine;
 public class UfoView : MonoBehaviour
 {
     [SerializeField] private Rigidbody2D _rigidBody;
-    [SerializeField] private float _chaseSpeed = 3f;
 
     private Ufo _ufo;
-    private IShipInfo _shipInfo;
-
-    public void Initialize(Ufo ufo, IShipInfo shipInfo)
+    public void Initialize(Ufo ufo)
     {
         _ufo = ufo;
-        _shipInfo = shipInfo;
+        _ufo.OnSpawnedEvent += HandleSpawned;
+        _ufo.OnReturnedEvent += HandleReturned;
+    }
+
+    private void HandleSpawned()
+    {
+        gameObject.SetActive(true);
+        SyncPosition();
+    }
+
+    private void HandleReturned()
+    {
+        gameObject.SetActive(false);
     }
 
     private void FixedUpdate()
     {
-        _ufo.Chase(_shipInfo.Position, _chaseSpeed, Time.fixedDeltaTime);
         _rigidBody.MovePosition(_ufo.Physics.Position);
     }
 
@@ -24,6 +32,4 @@ public class UfoView : MonoBehaviour
     {
         transform.position = _ufo.Physics.Position;
     }
-
-
 }

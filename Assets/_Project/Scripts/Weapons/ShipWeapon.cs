@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 
@@ -9,6 +10,7 @@ public class ShipWeapon
     private readonly ObjectPool<Bullet> _bulletPool;
     private readonly float _fireRate;
     private float _lastFireTime;
+    private CancellationTokenSource _cts = new CancellationTokenSource();
 
     public ObjectPool<Bullet> BulletPool => _bulletPool;
 
@@ -27,12 +29,18 @@ public class ShipWeapon
 
         Bullet bullet = _bulletPool.Get();
         bullet.Fire(position, direction * speed, rotation);
-        ReturnBulletAfterDelay(bullet, BulletLifetime).Forget();
+        ReturnBulletAfterDelay(bullet, BulletLifetime, _cts.Token).Forget();
     }
 
-    private async UniTaskVoid ReturnBulletAfterDelay(Bullet bullet, float delay)
+    public void Dispose()
     {
-        await UniTask.Delay(TimeSpan.FromSeconds(delay));
+        _cts.Cancel();
+        _cts.Dispose();
+    }
+
+    private async UniTask ReturnBulletAfterDelay(Bullet bullet, float delay, CancellationToken token)
+    {
+        await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: token);
         _bulletPool.Return(bullet);
     }
 }

@@ -1,42 +1,26 @@
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class Ship : IShipInfo
 {
-    private const float InvulnerabilityDuration = 3f;
+    private CancellationTokenSource _cts = new CancellationTokenSource();
 
-    private float _lastChargeTime;
+    private const float InvulnerabilityDuration = 3f;
 
     public PhysicsMovement Physics { get; private set; }
     public int Health { get; private set; }
     public bool IsInvulnerable { get; private set; } = false;
     public float Rotation { get; private set; } = 0;
-    public int MaxLaserCharges { get; private set; } = 3;
-    public int CurrentLaserCharges { get; private set; } = 3;
-    public float LaserRechargeTime { get; private set; } = 3f;
 
-    public float TimeUntilNextCharge => CurrentLaserCharges >= MaxLaserCharges
-        ? 0f
-        : Math.Max(0f, LaserRechargeTime - (Time.time - _lastChargeTime));
 
     public Vector2 Position => Physics.Position;
 
     public event Action OnInvulnerabilityStarted;
     public event Action OnInvulnerabilityEnded;
-    public event Action OnLaserChargesChanged;
-    public event Action OnHealthChanged;
     public event Action OnDied;
-    public event Action OnLaserFired;
-
-    private async UniTaskVoid InvulnerabilityTimer()
-    {
-        IsInvulnerable = true;
-        OnInvulnerabilityStarted?.Invoke();
-        await UniTask.Delay(TimeSpan.FromSeconds(InvulnerabilityDuration));
-        IsInvulnerable = false;
-        OnInvulnerabilityEnded?.Invoke();
-    }
+    public event Action OnHealthChanged;
 
     public Ship(float radius, float mass, float dragCoefficient, float maxSpeed, int maxHealth)
     {
@@ -48,7 +32,6 @@ public class Ship : IShipInfo
             DragCoefficient = dragCoefficient,
             MaxSpeed = maxSpeed
         };
-        LaserChargeLoop().Forget();
     }
 
     public void TakeDamage(int damage)
@@ -60,7 +43,7 @@ public class Ship : IShipInfo
         if (Health <= 0)
             OnDied?.Invoke();
         else
-            InvulnerabilityTimer().Forget();
+            InvulnerabilityTimer(_cts.Token).Forget();
     }
 
     public void ApplyRotation(float rotation)
@@ -68,31 +51,20 @@ public class Ship : IShipInfo
         Rotation += rotation;
     }
 
-    public bool TryUseLaserCharge()
+
+    public void Dispose()
     {
-        if (CurrentLaserCharges <= 0)
-            return false;
-        CurrentLaserCharges--;
-        OnLaserChargesChanged?.Invoke();
-        OnLaserFired?.Invoke();
-        return true;
+        _cts.Cancel();
+        _cts.Dispose();
     }
 
-    private async UniTaskVoid LaserChargeLoop()
+
+    private async UniTask InvulnerabilityTimer(CancellationToken token)
     {
-        while (true)
-        {
-            if (CurrentLaserCharges < MaxLaserCharges)
-            {
-                _lastChargeTime = Time.time;
-                await UniTask.Delay(TimeSpan.FromSeconds(LaserRechargeTime));
-                CurrentLaserCharges++;
-                OnLaserChargesChanged?.Invoke();
-            }
-            else
-            {
-                await UniTask.Yield();
-            }
-        }
+        IsInvulnerable = true;
+        OnInvulnerabilityStarted?.Invoke();
+        await UniTask.Delay(TimeSpan.FromSeconds(InvulnerabilityDuration), cancellationToken: token);
+        IsInvulnerable = false;
+        OnInvulnerabilityEnded?.Invoke();
     }
 }

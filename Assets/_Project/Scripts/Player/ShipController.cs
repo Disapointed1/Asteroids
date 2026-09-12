@@ -9,26 +9,29 @@ public class ShipController
     private readonly float _thrustPower;
     private readonly WorldBoundary _worldBoundary;
     private readonly float _bulletSpeed;
+    private readonly LaserWeapon _laserWeapon;
 
 
-    public ShipController(Ship ship, IInputProvider input, float rotationSpeed, float thrustPower, WorldBoundary worldBoundary, ShipWeapon shipWeapon,  float bulletSpeed)
+    public ShipController(Ship ship, IInputProvider input, float rotationSpeed, float thrustPower,
+        WorldBoundary worldBoundary, ShipWeapon shipWeapon, float bulletSpeed, LaserWeapon laserWeapon)
     {
-        _ship =  ship;
+        _ship = ship;
         _input = input;
         _rotationSpeed = rotationSpeed;
         _thrustPower = thrustPower;
         _worldBoundary = worldBoundary;
         _shipWeapon = shipWeapon;
         _bulletSpeed = bulletSpeed;
+        _laserWeapon = laserWeapon;
     }
 
     public void Tick(float deltaTime)
     {
-        Vector2 movementInput =  _input.GetMovementInput();
+        Vector2 movementInput = _input.GetMovementInput();
         float rotationInput = _input.GetRotationInput();
 
         if (!_ship.IsInvulnerable)
-            _ship.ApplyRotation(rotationInput *  deltaTime * _rotationSpeed);
+            _ship.ApplyRotation(rotationInput * deltaTime * _rotationSpeed);
 
         Vector2 thrustDirection = GetThrustDirection();
 
@@ -40,15 +43,15 @@ public class ShipController
         _ship.Physics.ClampVelocity();
         _ship.Physics.UpdatePosition(deltaTime);
         _worldBoundary.WrapPosition(_ship.Physics);
-
     }
 
     public void HandleFireInput()
     {
         if (_input.GetFireInput() && !_ship.IsInvulnerable)
         {
-            Vector2 thrustDirection =GetThrustDirection();
-            ICommand command = new FireBulletCommand(_shipWeapon, _ship.Physics.Position,  thrustDirection,_bulletSpeed, _ship.Rotation);
+            Vector2 thrustDirection = GetThrustDirection();
+            ICommand command = new FireBulletCommand(_shipWeapon, _ship.Physics.Position, thrustDirection, _bulletSpeed,
+                _ship.Rotation);
             command.Execute();
         }
     }
@@ -57,15 +60,13 @@ public class ShipController
     {
         if (_input.GetLaserInput() && !_ship.IsInvulnerable)
         {
-            ICommand command = new FireLaserCommand(_ship);
+            ICommand command = new FireLaserCommand(_laserWeapon);
             command.Execute();
         }
     }
 
     private Vector2 GetThrustDirection()
     {
-        return new  Vector2(-Mathf.Sin(_ship.Rotation * Mathf.Deg2Rad),
-            Mathf.Cos(_ship.Rotation * Mathf.Deg2Rad));
+        return DirectionMath.FromAngle(_ship.Rotation);
     }
-
 }

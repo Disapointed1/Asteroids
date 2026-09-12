@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using Zenject;
@@ -9,51 +10,38 @@ public class UfoSpawner
     private const float MinSpawnDelay = 1f;
     private const float MaxSpawnDelay = 5f;
 
-    private readonly IShipInfo _shipInfo;
     private readonly ObjectPool<Ufo> _ufoPool;
     private readonly WorldBoundary _boundary;
-    private readonly float _ufoSpeed;
-    private readonly UfoFactory _ufoFactory;
     private readonly EnemyCounterTracker _counterTracker;
     private readonly SignalBus _signalBus;
-    private bool _isGameOver;
+
+    private CancellationTokenSource _cts =  new CancellationTokenSource();
 
     public ObjectPool<Ufo> UfoPool => _ufoPool;
 
-    public UfoSpawner(UfoFactory ufoFactory, WorldBoundary boundary, float ufoSpeed, IShipInfo shipInfo, EnemyCounterTracker counterTracker, SignalBus signalBus)
+    public UfoSpawner(UfoFactory ufoFactory, WorldBoundary boundary,
+        EnemyCounterTracker counterTracker, SignalBus signalBus)
     {
-        _ufoPool = new ObjectPool<Ufo>(() => ufoFactory.CreateUfo(_shipInfo));
+        _ufoPool = new ObjectPool<Ufo>( ufoFactory.CreateUfo);
         _boundary = boundary;
-        _ufoSpeed = ufoSpeed;
-        _ufoFactory = ufoFactory;
-        _shipInfo = shipInfo;
         _counterTracker = counterTracker;
         _signalBus = signalBus;
         _signalBus.Subscribe<GameOverSignal>(HandleGameOver);
     }
-
-    private void HandleGameOver()
-    {
-        _isGameOver = true;
-    }
-
     public void StartSpawning()
     {
-        SpawnLoop().Forget();
+        SpawnLoop(_cts.Token).Forget();
     }
 
-    private async UniTaskVoid SpawnLoop()
+    private async UniTask SpawnLoop(CancellationToken token)
     {
-        while (true)
+        while (!token.IsCancellationRequested)
         {
-            if (_isGameOver)
-                break;
+
 
             float spawnRate = Random.Range(MinSpawnDelay, MaxSpawnDelay);
-            await UniTask.Delay(TimeSpan.FromSeconds(spawnRate));
+            await UniTask.Delay(TimeSpan.FromSeconds(spawnRate), cancellationToken: token);
 
-            if (_isGameOver)
-                break;
 
             if (!_counterTracker.CanSpawn())
                 continue;
@@ -71,5 +59,10 @@ public class UfoSpawner
         ufo.OnDestroyed -= HandleUfoDestroyed;
         _ufoPool.Return(ufo);
         _counterTracker.RegisterDestroyed();
+    }
+
+    private void HandleGameOver()
+    {
+        _cts.Cancel();
     }
 }

@@ -22,21 +22,21 @@ public class ObjectPool<T> where T: IPoolable
             T item = _availableObjects[_availableObjects.Count - 1];
             _availableObjects.RemoveAt(_availableObjects.Count - 1);
             _inUseObjects.Add(item);
-            item.OnSpawn();
             return item;
         }
         else
         {
             T item = _factoryMethod();
             _inUseObjects.Add(item);
-            item.OnSpawn();
             return item;
         }
     }
 
     public void Return(T item)
     {
-        _inUseObjects.Remove(item);
+        if (!_inUseObjects.Remove(item))
+            return;
+
         item.OnDespawn();
         _availableObjects.Add(item);
     }

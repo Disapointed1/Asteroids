@@ -10,10 +10,10 @@ public class LaserView : MonoBehaviour
 
     private IShipInfo _ship;
 
-    public void Initialize(IShipInfo ship)
+    public void Initialize(IShipInfo ship, LaserWeapon laserWeapon)
     {
         _ship = ship;
-        _ship.OnLaserFired += HandleLaserFired;
+        laserWeapon.OnFired += HandleLaserFired;
         _lineRenderer.enabled = false;
     }
 
@@ -24,8 +24,7 @@ public class LaserView : MonoBehaviour
 
     private async UniTaskVoid ShowLaser()
     {
-        Vector2 direction = new Vector2(-Mathf.Sin(_ship.Rotation * Mathf.Deg2Rad),
-            Mathf.Cos(_ship.Rotation * Mathf.Deg2Rad));
+            Vector2 direction = DirectionMath.FromAngle(_ship.Rotation);
             Vector2 start = _ship.Position;
             Vector2 end = start + direction * _laserLength;
 

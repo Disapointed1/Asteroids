@@ -23,7 +23,6 @@ public class AsteroidFactory
         Asteroid asteroid = new Asteroid(radius, size);
         AsteroidView asteroidView = _container.InstantiatePrefabForComponent<AsteroidView>(_asteroidViewPrefab);
         asteroidView.Initialize(asteroid);
-        asteroid.SetView(asteroidView.gameObject);
         return asteroid;
     }
 

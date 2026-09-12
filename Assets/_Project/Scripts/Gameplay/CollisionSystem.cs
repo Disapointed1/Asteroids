@@ -13,18 +13,24 @@ public class CollisionSystem
     private readonly CollisionResolver _collisionResolver;
     private readonly GameScore _score;
     private readonly RewardService _rewardService;
+    private readonly float _ufoChaseSpeed;
+    private readonly LaserWeapon _laserWeapon;
 
-    public CollisionSystem(Ship ship, ObjectPool<Bullet> bulletPool, ObjectPool<Asteroid> asteroidPool, ObjectPool<Ufo> ufoPool, GameScore score, RewardService rewardService)
+    public CollisionSystem(Ship ship, ObjectPool<Bullet> bulletPool, ObjectPool<Asteroid> asteroidPool,
+        ObjectPool<Ufo> ufoPool, GameScore score, RewardService rewardService, float ufoChaseSpeed, LaserWeapon laserWeapon,
+        CollisionDetector collisionDetector, CollisionResolver collisionResolver)
     {
         _ship = ship;
         _ufoPool = ufoPool;
         _bulletPool = bulletPool;
         _asteroidPool = asteroidPool;
         _score = score;
+        _laserWeapon = laserWeapon;
         _rewardService = rewardService;
-        _collisionDetector = new CollisionDetector();
-        _collisionResolver = new CollisionResolver();
-        _ship.OnLaserFired += HandleLaserFired;
+        _laserWeapon.OnFired += HandleLaserFired;
+        _ufoChaseSpeed = ufoChaseSpeed;
+        _collisionDetector = collisionDetector;
+        _collisionResolver = collisionResolver;
     }
 
     public void CheckCollisions()
@@ -33,11 +39,25 @@ public class CollisionSystem
         List<Asteroid> asteroidsToHit = new List<Asteroid>();
         List<Ufo> ufosToHit = new List<Ufo>();
 
+        float deltaTime = Time.fixedDeltaTime;
+
+        foreach (Bullet bullet in _bulletPool.InUseObjects)
+            bullet.Physics.UpdatePosition(deltaTime);
+
+        foreach (Asteroid asteroid in _asteroidPool.InUseObjects)
+            asteroid.Physics.UpdatePosition(deltaTime);
+
+        foreach (Ufo ufo in _ufoPool.InUseObjects)
+        {
+            ufo.Chase(_ship.Physics.Position, _ufoChaseSpeed, deltaTime);
+            ufo.Physics.UpdatePosition(deltaTime);
+        }
+
         foreach (Bullet bullet in _bulletPool.InUseObjects)
         {
             foreach (Asteroid asteroid in _asteroidPool.InUseObjects)
             {
-                if (_collisionDetector.CheckCollision(bullet.PhysicsMovement, asteroid.Physics))
+                if (_collisionDetector.CheckCollision(bullet.Physics, asteroid.Physics))
                 {
                     asteroidsToHit.Add(asteroid);
                     bulletsToReturn.Add(bullet);
@@ -46,7 +66,7 @@ public class CollisionSystem
 
             foreach (Ufo ufo in _ufoPool.InUseObjects)
             {
-                if (_collisionDetector.CheckCollision(bullet.PhysicsMovement, ufo.Physics))
+                if (_collisionDetector.CheckCollision(bullet.Physics, ufo.Physics))
                 {
                     ufosToHit.Add(ufo);
                     bulletsToReturn.Add(bullet);
@@ -92,7 +112,7 @@ public class CollisionSystem
 
     private void HandleLaserFired()
     {
-        Vector2 direction = new Vector2(-Mathf.Sin(_ship.Rotation * Mathf.Deg2Rad), Mathf.Cos(_ship.Rotation * Mathf.Deg2Rad));
+        Vector2 direction = DirectionMath.FromAngle(_ship.Rotation);
         Vector2 start = _ship.Physics.Position;
         Vector2 end = start + direction * LaserRange;
 

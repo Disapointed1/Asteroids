@@ -33,6 +33,12 @@ public class ProjectInstaller : MonoInstaller
         Container.Bind<TouchButton>().WithId("Laser").FromInstance(_laserButton).AsCached();
         Container.Bind<Joystick>().FromComponentInHierarchy().AsSingle();
         Container.Bind<FullScreenAdService>().FromComponentInHierarchy().AsSingle();
+        Container.Bind<InputProviderFactory>().AsSingle();
+        Container.Bind<PlayerBuilder>().AsSingle();
+        Container.Bind<EnemySystemBuilder>().AsSingle();
+        Container.Bind<GameplaySystemBuilder>().AsSingle();
+        Container.Bind<CollisionDetector>().AsSingle();
+        Container.Bind<CollisionResolver>().AsSingle();
         Container.DeclareSignal<GameOverSignal>();
     }
 }

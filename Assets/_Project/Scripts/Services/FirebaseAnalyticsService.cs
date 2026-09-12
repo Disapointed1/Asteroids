@@ -18,12 +18,12 @@ public class FirebaseAnalyticsService
         if (status == DependencyStatus.Available)
         {
             _isReady = true;
+            LogEvent("game_started");
         }
         else
         {
             Debug.LogError($"Firebase dependencies not available: {status}");
         }
-
     }
 
     public void LogEvent(string eventName)
@@ -32,5 +32,4 @@ public class FirebaseAnalyticsService
             return;
         FirebaseAnalytics.LogEvent(eventName);
     }
-
 }

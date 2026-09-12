@@ -18,7 +18,6 @@ public class BulletFactory
         Bullet bullet = new Bullet(_bulletRadius);
         BulletView view = _container.InstantiatePrefabForComponent<BulletView>(_bulletViewPrefab);
         view.Initialize(bullet);
-        bullet.SetView(view.gameObject);
         return bullet;
     }
 }

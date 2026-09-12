@@ -1,15 +1,15 @@
 public class FireLaserCommand : ICommand
 {
-    private readonly Ship _ship;
+    private readonly LaserWeapon _laserWeapon;
 
-    public FireLaserCommand(Ship ship)
+    public FireLaserCommand(LaserWeapon laserWeapon)
     {
-        _ship = ship;
+        _laserWeapon = laserWeapon;
     }
 
     public void Execute()
     {
-        _ship.TryUseLaserCharge();
+        _laserWeapon.TryFire();
     }
 
 
