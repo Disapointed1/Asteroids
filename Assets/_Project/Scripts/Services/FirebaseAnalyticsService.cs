@@ -5,6 +5,9 @@ using UnityEngine;
 
 public class FirebaseAnalyticsService
 {
+    private const string GameStartedEvent = "game_started";
+    private const string GameOverEvent = "game_over";
+
     private bool _isReady;
 
     public FirebaseAnalyticsService()
@@ -14,11 +17,11 @@ public class FirebaseAnalyticsService
 
     private async UniTaskVoid InitializeAsync()
     {
-        DependencyStatus status = await FirebaseApp.CheckAndFixDependenciesAsync().AsUniTask();
+        var status = await FirebaseApp.CheckAndFixDependenciesAsync().AsUniTask();
         if (status == DependencyStatus.Available)
         {
             _isReady = true;
-            LogEvent("game_started");
+            LogEvent(GameStartedEvent);
         }
         else
         {
@@ -26,7 +29,12 @@ public class FirebaseAnalyticsService
         }
     }
 
-    public void LogEvent(string eventName)
+    public void LogGameOver()
+    {
+        LogEvent(GameOverEvent);
+    }
+
+    private void LogEvent(string eventName)
     {
         if (!_isReady)
             return;

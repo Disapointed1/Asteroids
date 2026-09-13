@@ -3,17 +3,18 @@ using UnityEngine;
 
 public class Ufo : IPoolable, IEnemy
 {
-    public PhysicsMovement Physics { get; private set; }
-
-    public event Action<Ufo> OnDestroyed;
-    public event Action OnSpawnedEvent;
-    public event Action OnReturnedEvent;
-
-    public EnemyType Type => EnemyType.Ufo;
-
     public Ufo(float radius, float mass)
     {
         Physics = new PhysicsMovement { Radius = radius, Mass = mass, DragCoefficient = 0 };
+    }
+
+    public PhysicsMovement Physics { get; }
+
+    public EnemyType Type => EnemyType.Ufo;
+
+    public void TakeHit()
+    {
+        OnDestroyed?.Invoke(this);
     }
 
     public void OnDespawn()
@@ -21,10 +22,9 @@ public class Ufo : IPoolable, IEnemy
         OnReturnedEvent?.Invoke();
     }
 
-    public void TakeHit()
-    {
-        OnDestroyed?.Invoke(this);
-    }
+    public event Action<Ufo> OnDestroyed;
+    public event Action OnSpawnedEvent;
+    public event Action OnReturnedEvent;
 
     public void SetPosition(Vector2 position)
     {
@@ -34,7 +34,7 @@ public class Ufo : IPoolable, IEnemy
 
     public void Chase(Vector2 targetPosition, float speed, float deltaTime)
     {
-        Vector2 direction = (targetPosition - Physics.Position).normalized;
+        var direction = (targetPosition - Physics.Position).normalized;
         Physics.ApplyAcceleration(direction * speed, deltaTime);
     }
 }

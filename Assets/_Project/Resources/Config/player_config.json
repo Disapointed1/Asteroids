@@ -8,5 +8,9 @@
   "ShipRadius": 0.5,
   "ShipMass": 1,
   "ShipDragCoefficient": 0.5,
-  "BulletRadius": 0.1
+  "BulletRadius": 0.1,
+  "MaxLaserCharges": 3,
+  "LaserRechargeTime": 3,
+  "InvulnerabilityDuration" : 3,
+  "BulletLifeTime" : 3
 }

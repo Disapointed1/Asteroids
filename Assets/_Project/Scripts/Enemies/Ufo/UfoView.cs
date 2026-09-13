@@ -5,6 +5,12 @@ public class UfoView : MonoBehaviour
     [SerializeField] private Rigidbody2D _rigidBody;
 
     private Ufo _ufo;
+
+    private void FixedUpdate()
+    {
+        _rigidBody.MovePosition(_ufo.Physics.Position);
+    }
+
     public void Initialize(Ufo ufo)
     {
         _ufo = ufo;
@@ -21,11 +27,6 @@ public class UfoView : MonoBehaviour
     private void HandleReturned()
     {
         gameObject.SetActive(false);
-    }
-
-    private void FixedUpdate()
-    {
-        _rigidBody.MovePosition(_ufo.Physics.Position);
     }
 
     public void SyncPosition()

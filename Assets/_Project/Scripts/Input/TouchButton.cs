@@ -3,19 +3,15 @@ using UnityEngine.EventSystems;
 
 public class TouchButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
-    private bool _isPressed;
-
-
-    public bool IsPressed => _isPressed;
+    public bool IsPressed { get; private set; }
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        _isPressed = true;
+        IsPressed = true;
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        _isPressed = false;
+        IsPressed = false;
     }
-
 }

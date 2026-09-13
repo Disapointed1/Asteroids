@@ -17,9 +17,9 @@ public class EnemyCounterTracker
     {
         _currentCount++;
     }
+
     public void RegisterDestroyed()
     {
         _currentCount--;
     }
-
 }

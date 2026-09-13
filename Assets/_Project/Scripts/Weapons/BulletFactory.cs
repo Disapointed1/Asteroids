@@ -2,9 +2,9 @@ using Zenject;
 
 public class BulletFactory
 {
-    private readonly DiContainer _container;
-    private readonly BulletView _bulletViewPrefab;
     private readonly float _bulletRadius;
+    private readonly BulletView _bulletViewPrefab;
+    private readonly DiContainer _container;
 
     public BulletFactory(DiContainer container, BulletView bulletViewPrefab, float radius)
     {
@@ -15,8 +15,8 @@ public class BulletFactory
 
     public Bullet Create()
     {
-        Bullet bullet = new Bullet(_bulletRadius);
-        BulletView view = _container.InstantiatePrefabForComponent<BulletView>(_bulletViewPrefab);
+        var bullet = new Bullet(_bulletRadius);
+        var view = _container.InstantiatePrefabForComponent<BulletView>(_bulletViewPrefab);
         view.Initialize(bullet);
         return bullet;
     }

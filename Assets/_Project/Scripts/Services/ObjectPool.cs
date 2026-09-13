@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
 
-public class ObjectPool<T> where T: IPoolable
+public class ObjectPool<T> where T : IPoolable
 {
-    private readonly List<T> _availableObjects = new List<T>();
-    private readonly List<T> _inUseObjects = new List<T>();
+    private readonly List<T> _availableObjects = new();
     private readonly Func<T> _factoryMethod;
-
-    public IReadOnlyList<T> InUseObjects => _inUseObjects;
+    private readonly List<T> _inUseObjects = new();
 
 
     public ObjectPool(Func<T> factoryMethod)
@@ -15,18 +13,20 @@ public class ObjectPool<T> where T: IPoolable
         _factoryMethod = factoryMethod;
     }
 
+    public IReadOnlyList<T> InUseObjects => _inUseObjects;
+
     public T Get()
     {
-        if  (_availableObjects.Count > 0)
+        if (_availableObjects.Count > 0)
         {
-            T item = _availableObjects[_availableObjects.Count - 1];
+            var item = _availableObjects[_availableObjects.Count - 1];
             _availableObjects.RemoveAt(_availableObjects.Count - 1);
             _inUseObjects.Add(item);
             return item;
         }
         else
         {
-            T item = _factoryMethod();
+            var item = _factoryMethod();
             _inUseObjects.Add(item);
             return item;
         }

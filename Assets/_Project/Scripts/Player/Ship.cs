@@ -5,26 +5,17 @@ using UnityEngine;
 
 public class Ship : IShipInfo
 {
-    private CancellationTokenSource _cts = new CancellationTokenSource();
+    private readonly CancellationTokenSource _cts = new();
 
-    private const float InvulnerabilityDuration = 3f;
+    private readonly float _invulnerabilityDuration;
 
-    public PhysicsMovement Physics { get; private set; }
-    public int Health { get; private set; }
-    public bool IsInvulnerable { get; private set; } = false;
-    public float Rotation { get; private set; } = 0;
+    private bool _isDisposed;
 
-
-    public Vector2 Position => Physics.Position;
-
-    public event Action OnInvulnerabilityStarted;
-    public event Action OnInvulnerabilityEnded;
-    public event Action OnDied;
-    public event Action OnHealthChanged;
-
-    public Ship(float radius, float mass, float dragCoefficient, float maxSpeed, int maxHealth)
+    public Ship(float radius, float mass, float dragCoefficient, float maxSpeed, int maxHealth,
+        float invulnerabilityDuration)
     {
         Health = maxHealth;
+        _invulnerabilityDuration = invulnerabilityDuration;
         Physics = new PhysicsMovement
         {
             Radius = radius,
@@ -34,9 +25,22 @@ public class Ship : IShipInfo
         };
     }
 
+    public PhysicsMovement Physics { get; }
+    public int Health { get; private set; }
+    public bool IsInvulnerable { get; private set; }
+    public float Rotation { get; private set; }
+
+
+    public Vector2 Position => Physics.Position;
+
+    public event Action OnInvulnerabilityStarted;
+    public event Action OnInvulnerabilityEnded;
+    public event Action OnDied;
+    public event Action OnHealthChanged;
+
     public void TakeDamage(int damage)
     {
-        if (IsInvulnerable)
+        if (_isDisposed || IsInvulnerable)
             return;
         Health -= damage;
         OnHealthChanged?.Invoke();
@@ -54,6 +58,7 @@ public class Ship : IShipInfo
 
     public void Dispose()
     {
+        _isDisposed = true;
         _cts.Cancel();
         _cts.Dispose();
     }
@@ -63,7 +68,7 @@ public class Ship : IShipInfo
     {
         IsInvulnerable = true;
         OnInvulnerabilityStarted?.Invoke();
-        await UniTask.Delay(TimeSpan.FromSeconds(InvulnerabilityDuration), cancellationToken: token);
+        await UniTask.Delay(TimeSpan.FromSeconds(_invulnerabilityDuration), cancellationToken: token);
         IsInvulnerable = false;
         OnInvulnerabilityEnded?.Invoke();
     }

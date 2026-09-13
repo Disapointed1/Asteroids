@@ -24,18 +24,16 @@ public class LaserView : MonoBehaviour
 
     private async UniTaskVoid ShowLaser()
     {
-            Vector2 direction = DirectionMath.FromAngle(_ship.Rotation);
-            Vector2 start = _ship.Position;
-            Vector2 end = start + direction * _laserLength;
+        var direction = DirectionMath.FromAngle(_ship.Rotation);
+        var start = _ship.Position;
+        var end = start + direction * _laserLength;
 
-            _lineRenderer.SetPosition(0, start);
-            _lineRenderer.SetPosition(1, end);
-            _lineRenderer.enabled = true;
+        _lineRenderer.SetPosition(0, start);
+        _lineRenderer.SetPosition(1, end);
+        _lineRenderer.enabled = true;
 
-            await UniTask.Delay(TimeSpan.FromSeconds(_visibleDuration));
+        await UniTask.Delay(TimeSpan.FromSeconds(_visibleDuration));
 
-            _lineRenderer.enabled = false;
-
+        _lineRenderer.enabled = false;
     }
-
 }

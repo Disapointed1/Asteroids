@@ -8,12 +8,9 @@ public class ShipView : MonoBehaviour
     private Ship _ship;
     private ShipController _shipController;
 
-    public void Initialize(Ship ship, ShipController shipController)
+    private void Update()
     {
-        _ship = ship;
-        _shipController = shipController;
-        _ship.OnInvulnerabilityStarted += HandleInvulnerabilityStarted;
-        _ship.OnInvulnerabilityEnded += HandleInvulnerabilityEnded;
+        _shipController.HandleInput();
     }
 
     private void FixedUpdate()
@@ -23,10 +20,18 @@ public class ShipView : MonoBehaviour
         transform.rotation = Quaternion.Euler(0, 0, _ship.Rotation);
     }
 
-    private void Update()
+    private void OnDestroy()
     {
-        _shipController.HandleFireInput();
-        _shipController.HandleLaserInput();
+        _ship.OnInvulnerabilityStarted -= HandleInvulnerabilityStarted;
+        _ship.OnInvulnerabilityEnded -= HandleInvulnerabilityEnded;
+    }
+
+    public void Initialize(Ship ship, ShipController shipController)
+    {
+        _ship = ship;
+        _shipController = shipController;
+        _ship.OnInvulnerabilityStarted += HandleInvulnerabilityStarted;
+        _ship.OnInvulnerabilityEnded += HandleInvulnerabilityEnded;
     }
 
     private void HandleInvulnerabilityStarted()
@@ -38,5 +43,4 @@ public class ShipView : MonoBehaviour
     {
         _particles.Stop();
     }
-
 }

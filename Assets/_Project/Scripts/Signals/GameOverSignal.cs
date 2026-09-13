@@ -1,3 +1,3 @@
-public class GameOverSignal{
-
+public class GameOverSignal
+{
 }

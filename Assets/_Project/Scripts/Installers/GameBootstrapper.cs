@@ -3,22 +3,30 @@ using Zenject;
 
 public class GameBootstrapper : IInitializable
 {
-    private readonly PlayerBuilder _playerBuilder;
+    private const float OrthographicSizeToHeightMultiplier = 2f;
+    private readonly Camera _camera;
     private readonly EnemySystemBuilder _enemySystemBuilder;
-    private readonly GameplaySystemBuilder _gameplaySystemBuilder;
-    private readonly InputProviderFactory _inputProviderFactory;
-    private readonly ShipStatusView _shipStatusView;
-    private readonly GameScoreView _gameScoreView;
-    private readonly GameOverView _gameOverView;
+    private readonly FirebaseAnalyticsService _firebaseAnalyticsService;
     private readonly FullScreenAdService _fullScreenAdService;
+    private readonly GameConfigProvider _gameConfigProvider;
+    private readonly GameOverView _gameOverView;
+    private readonly GameplaySystemBuilder _gameplaySystemBuilder;
+    private readonly GameScoreView _gameScoreView;
+    private readonly InputProviderFactory _inputProviderFactory;
+    private readonly PauseService _pauseService;
+
+    private readonly PlayerBuilder _playerBuilder;
+    private readonly SceneLoader _sceneLoader;
+    private readonly ShipStatusView _shipStatusView;
     private readonly SignalBus _signalBus;
-    private readonly GameConfigFacade _gameConfigFacade;
 
     public GameBootstrapper(PlayerBuilder playerBuilder, EnemySystemBuilder enemySystemBuilder,
         GameplaySystemBuilder gameplaySystemBuilder,
         InputProviderFactory inputProviderFactory, ShipStatusView shipStatusView, GameScoreView gameScoreView,
         GameOverView gameOverView,
-        FullScreenAdService fullScreenAdService, SignalBus signalBus, GameConfigFacade gameConfigFacade)
+        FullScreenAdService fullScreenAdService, SignalBus signalBus, GameConfigProvider gameConfigProvider,
+        Camera camera,
+        FirebaseAnalyticsService firebaseAnalyticsService, SceneLoader sceneLoader, PauseService pauseService)
     {
         _playerBuilder = playerBuilder;
         _enemySystemBuilder = enemySystemBuilder;
@@ -29,37 +37,40 @@ public class GameBootstrapper : IInitializable
         _gameOverView = gameOverView;
         _fullScreenAdService = fullScreenAdService;
         _signalBus = signalBus;
-        _gameConfigFacade = gameConfigFacade;
+        _gameConfigProvider = gameConfigProvider;
+        _camera = camera;
+        _firebaseAnalyticsService = firebaseAnalyticsService;
+        _sceneLoader = sceneLoader;
+        _pauseService = pauseService;
     }
 
     public void Initialize()
     {
-        FirebaseAnalyticsService analyticsService = new FirebaseAnalyticsService();
-        analyticsService.LogEvent("game_started");
-        SceneLoader sceneLoader = new SceneLoader();
-        EnemyCounterTracker enemyCounterTracker = new EnemyCounterTracker(_gameConfigFacade.World.MaxEnemiesOnMap);
+        var enemyCounterTracker = new EnemyCounterTracker(_gameConfigProvider.World.MaxEnemiesOnMap);
 
-        IInputProvider inputProvider = _inputProviderFactory.Create();
+        var inputProvider = _inputProviderFactory.Create();
 
-        float height = Camera.main.orthographicSize * 2f;
-        float width = height * Camera.main.aspect;
-        WorldBoundary worldBoundary = new WorldBoundary(width, height);
+        var height = _camera.orthographicSize * OrthographicSizeToHeightMultiplier;
+        var width = height * _camera.aspect;
+        var worldBoundary = new WorldBoundary(width, height);
 
-        Ship ship = _playerBuilder.Build(inputProvider, worldBoundary, out ShipWeapon shipWeapon, out LaserWeapon laserWeapon, out ShipController shipController);
+        var ship = _playerBuilder.Build(inputProvider, worldBoundary, out var shipWeapon,
+            out var laserWeapon, out var shipController);
 
-        AsteroidSpawner asteroidSpawner = _enemySystemBuilder.BuildAsteroidSpawner(worldBoundary,enemyCounterTracker);
-        UfoSpawner ufoSpawner = _enemySystemBuilder.BuildUfoSpawner(worldBoundary, enemyCounterTracker);
+        var asteroidSpawner = _enemySystemBuilder.BuildAsteroidSpawner(worldBoundary, enemyCounterTracker);
+        var ufoSpawner = _enemySystemBuilder.BuildUfoSpawner(worldBoundary, enemyCounterTracker);
 
-        GameScore score = _gameplaySystemBuilder.Build(ship, shipWeapon.BulletPool, asteroidSpawner.AsteroidPool, ufoSpawner.UfoPool, laserWeapon);
+        var score = _gameplaySystemBuilder.Build(ship, shipWeapon.BulletPool, asteroidSpawner.AsteroidPool,
+            ufoSpawner.UfoPool, laserWeapon, out var collisionSystem);
 
-        GameScoreViewModel gameScoreViewModel = new GameScoreViewModel(score);
+        var gameScoreViewModel = new GameScoreViewModel(score);
         _gameScoreView.Initialize(gameScoreViewModel);
 
-        ShipStatusViewModel shipStatusViewModel = new ShipStatusViewModel(ship, laserWeapon);
+        var shipStatusViewModel = new ShipStatusViewModel(ship, laserWeapon);
         _shipStatusView.Initialize(shipStatusViewModel);
 
-        GameOverViewModel gameOverViewModel = new GameOverViewModel(ship,shipWeapon,score, analyticsService, _fullScreenAdService, _signalBus, laserWeapon);
-        _gameOverView.Initialize(gameOverViewModel, sceneLoader);
+        var gameOverViewModel = new GameOverViewModel(ship, shipWeapon, score, _firebaseAnalyticsService,
+            _fullScreenAdService, _signalBus, laserWeapon, collisionSystem, gameScoreViewModel);
+        _gameOverView.Initialize(gameOverViewModel, _sceneLoader, _pauseService);
     }
-
 }

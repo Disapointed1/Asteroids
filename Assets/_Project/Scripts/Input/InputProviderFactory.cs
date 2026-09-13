@@ -1,29 +1,23 @@
 using UnityEngine;
-using Zenject;
 
 public class InputProviderFactory
 {
-    private readonly Joystick _joystick;
-    private readonly TouchButton _fireButton;
-    private readonly TouchButton _laserButton;
+    private readonly TouchControlsView _touchControlsView;
 
-    public InputProviderFactory(Joystick joystick, [Inject(Id = "Fire")]TouchButton fireButton, [Inject (Id = "Laser")]TouchButton laserButton)
+    public InputProviderFactory(TouchControlsView touchControlsView)
     {
-        _joystick = joystick;
-        _fireButton = fireButton;
-        _laserButton = laserButton;
+        _touchControlsView = touchControlsView;
     }
 
     public IInputProvider Create()
     {
         if (Application.isMobilePlatform)
-        {
-            return new TouchInputProvider(_joystick, _fireButton, _laserButton);
-        }
+            return new TouchInputProvider(_touchControlsView.Joystick, _touchControlsView.FireButton,
+                _touchControlsView.LaserButton);
 
-        _joystick.gameObject.SetActive(false);
-        _fireButton.gameObject.SetActive(false);
-        _laserButton.gameObject.SetActive(false);
+        _touchControlsView.Joystick.gameObject.SetActive(false);
+        _touchControlsView.FireButton.gameObject.SetActive(false);
+        _touchControlsView.LaserButton.gameObject.SetActive(false);
         return new KeyboardInputProvider();
     }
 }

@@ -6,9 +6,7 @@ public class Joystick : MonoBehaviour, IDragHandler, IPointerDownHandler, IPoint
     [SerializeField] private RectTransform _background;
     [SerializeField] private RectTransform _handle;
 
-    public Vector2 InputDirection => _inputDirection;
-
-    private Vector2 _inputDirection = Vector2.zero;
+    public Vector2 InputDirection { get; private set; } = Vector2.zero;
 
     public void OnDrag(PointerEventData eventData)
     {
@@ -16,10 +14,12 @@ public class Joystick : MonoBehaviour, IDragHandler, IPointerDownHandler, IPoint
         RectTransformUtility.ScreenPointToLocalPointInRectangle(_background, eventData.position,
             eventData.pressEventCamera, out position);
 
-        position = Vector2.ClampMagnitude(position, _background.sizeDelta.x / 2f);
+        var radius = _background.sizeDelta.x / 2f;
+
+        position = Vector2.ClampMagnitude(position, radius);
         _handle.anchoredPosition = position;
 
-        _inputDirection = position / (_background.sizeDelta.x / 2f);
+        InputDirection = position / radius;
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -29,7 +29,7 @@ public class Joystick : MonoBehaviour, IDragHandler, IPointerDownHandler, IPoint
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        _inputDirection = Vector2.zero;
+        InputDirection = Vector2.zero;
         _handle.anchoredPosition = Vector2.zero;
     }
 }

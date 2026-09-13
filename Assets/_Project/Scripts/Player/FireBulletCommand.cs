@@ -2,11 +2,11 @@ using UnityEngine;
 
 public class FireBulletCommand : ICommand
 {
-    private readonly ShipWeapon _weapon;
-    private readonly Vector2 _position;
     private readonly Vector2 _direction;
-    private readonly float _speed;
+    private readonly Vector2 _position;
     private readonly float _rotation;
+    private readonly float _speed;
+    private readonly ShipWeapon _weapon;
 
     public FireBulletCommand(ShipWeapon weapon, Vector2 position, Vector2 direction, float speed, float rotation)
     {

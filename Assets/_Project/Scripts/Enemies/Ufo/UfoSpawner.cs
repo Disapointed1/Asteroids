@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
 using Zenject;
 using Random = UnityEngine.Random;
 
@@ -9,25 +8,24 @@ public class UfoSpawner
 {
     private const float MinSpawnDelay = 1f;
     private const float MaxSpawnDelay = 5f;
-
-    private readonly ObjectPool<Ufo> _ufoPool;
     private readonly WorldBoundary _boundary;
     private readonly EnemyCounterTracker _counterTracker;
+
+    private readonly CancellationTokenSource _cts = new();
     private readonly SignalBus _signalBus;
-
-    private CancellationTokenSource _cts =  new CancellationTokenSource();
-
-    public ObjectPool<Ufo> UfoPool => _ufoPool;
 
     public UfoSpawner(UfoFactory ufoFactory, WorldBoundary boundary,
         EnemyCounterTracker counterTracker, SignalBus signalBus)
     {
-        _ufoPool = new ObjectPool<Ufo>( ufoFactory.CreateUfo);
+        UfoPool = new ObjectPool<Ufo>(ufoFactory.CreateUfo);
         _boundary = boundary;
         _counterTracker = counterTracker;
         _signalBus = signalBus;
         _signalBus.Subscribe<GameOverSignal>(HandleGameOver);
     }
+
+    public ObjectPool<Ufo> UfoPool { get; }
+
     public void StartSpawning()
     {
         SpawnLoop(_cts.Token).Forget();
@@ -37,18 +35,16 @@ public class UfoSpawner
     {
         while (!token.IsCancellationRequested)
         {
-
-
-            float spawnRate = Random.Range(MinSpawnDelay, MaxSpawnDelay);
+            var spawnRate = Random.Range(MinSpawnDelay, MaxSpawnDelay);
             await UniTask.Delay(TimeSpan.FromSeconds(spawnRate), cancellationToken: token);
 
 
             if (!_counterTracker.CanSpawn())
                 continue;
 
-            Ufo ufo = _ufoPool.Get();
+            var ufo = UfoPool.Get();
             ufo.OnDestroyed += HandleUfoDestroyed;
-            Vector2 position = _boundary.GetRandomPositionOutside();
+            var position = _boundary.GetRandomPositionOutside();
             ufo.SetPosition(position);
             _counterTracker.RegisterSpawned();
         }
@@ -57,7 +53,7 @@ public class UfoSpawner
     private void HandleUfoDestroyed(Ufo ufo)
     {
         ufo.OnDestroyed -= HandleUfoDestroyed;
-        _ufoPool.Return(ufo);
+        UfoPool.Return(ufo);
         _counterTracker.RegisterDestroyed();
     }
 

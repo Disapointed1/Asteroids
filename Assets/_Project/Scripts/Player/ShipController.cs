@@ -2,14 +2,14 @@ using UnityEngine;
 
 public class ShipController
 {
+    private readonly float _bulletSpeed;
+    private readonly IInputProvider _input;
+    private readonly LaserWeapon _laserWeapon;
+    private readonly float _rotationSpeed;
     private readonly Ship _ship;
     private readonly ShipWeapon _shipWeapon;
-    private readonly IInputProvider _input;
-    private readonly float _rotationSpeed;
     private readonly float _thrustPower;
     private readonly WorldBoundary _worldBoundary;
-    private readonly float _bulletSpeed;
-    private readonly LaserWeapon _laserWeapon;
 
 
     public ShipController(Ship ship, IInputProvider input, float rotationSpeed, float thrustPower,
@@ -27,13 +27,13 @@ public class ShipController
 
     public void Tick(float deltaTime)
     {
-        Vector2 movementInput = _input.GetMovementInput();
-        float rotationInput = _input.GetRotationInput();
+        var movementInput = _input.GetMovementInput();
+        var rotationInput = _input.GetRotationInput();
 
         if (!_ship.IsInvulnerable)
             _ship.ApplyRotation(rotationInput * deltaTime * _rotationSpeed);
 
-        Vector2 thrustDirection = GetThrustDirection();
+        var thrustDirection = GetThrustDirection();
 
         if (movementInput.y > 0 && !_ship.IsInvulnerable)
             _ship.Physics.ApplyAcceleration(thrustDirection * _thrustPower, deltaTime);
@@ -45,24 +45,30 @@ public class ShipController
         _worldBoundary.WrapPosition(_ship.Physics);
     }
 
-    public void HandleFireInput()
+    private void HandleFireInput()
     {
         if (_input.GetFireInput() && !_ship.IsInvulnerable)
         {
-            Vector2 thrustDirection = GetThrustDirection();
+            var thrustDirection = GetThrustDirection();
             ICommand command = new FireBulletCommand(_shipWeapon, _ship.Physics.Position, thrustDirection, _bulletSpeed,
                 _ship.Rotation);
             command.Execute();
         }
     }
 
-    public void HandleLaserInput()
+    private void HandleLaserInput()
     {
         if (_input.GetLaserInput() && !_ship.IsInvulnerable)
         {
             ICommand command = new FireLaserCommand(_laserWeapon);
             command.Execute();
         }
+    }
+
+    public void HandleInput()
+    {
+        HandleFireInput();
+        HandleLaserInput();
     }
 
     private Vector2 GetThrustDirection()

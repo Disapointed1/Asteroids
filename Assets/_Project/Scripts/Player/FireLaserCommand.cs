@@ -11,6 +11,4 @@ public class FireLaserCommand : ICommand
     {
         _laserWeapon.TryFire();
     }
-
-
 }

@@ -1819,8 +1819,6 @@ MonoBehaviour:
   _bulletViewPrefab: {fileID: 5841450915022097561, guid: 2994d889b40572548a64e02e14a2fe70, type: 3}
   _asteroidViewPrefab: {fileID: 6221040552917550481, guid: 2e926e649aae9684ebef27db8ba761ef, type: 3}
   _ufoViewPrefab: {fileID: 2687688465242569064, guid: 1a544011e66cbe34ea39c074e73056c8, type: 3}
-  _fireButton: {fileID: 614328123}
-  _laserButton: {fileID: 1218636824}
 --- !u!1 &1288100123
 GameObject:
   m_ObjectHideFlags: 0
@@ -7703,6 +7701,7 @@ GameObject:
   - component: {fileID: 2076092421}
   - component: {fileID: 2076092426}
   - component: {fileID: 2076092427}
+  - component: {fileID: 2076092428}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -7847,6 +7846,21 @@ MonoBehaviour:
   _panel: {fileID: 1827732435}
   _finalScoreText: {fileID: 73357499}
   _restartButton: {fileID: 171338749}
+--- !u!114 &2076092428
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2076092420}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e73cc84b24c5ebb4eb54961490610507, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _joystick: {fileID: 1151767702}
+  _fireButton: {fileID: 614328123}
+  _laserButton: {fileID: 1218636824}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

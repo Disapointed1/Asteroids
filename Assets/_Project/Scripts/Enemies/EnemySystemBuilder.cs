@@ -3,24 +3,28 @@ using Zenject;
 public class EnemySystemBuilder
 {
     private readonly AsteroidFactory _asteroidFactory;
-    private readonly UfoFactory _ufoFactory;
-    private readonly GameConfigFacade _configFacade;
+    private readonly GameConfigProvider _configProvider;
     private readonly SignalBus _signalBus;
+    private readonly UfoFactory _ufoFactory;
 
-    public EnemySystemBuilder(AsteroidFactory asteroidFactory, UfoFactory ufoFactory, GameConfigFacade configFacade,
+    public EnemySystemBuilder(AsteroidFactory asteroidFactory, UfoFactory ufoFactory, GameConfigProvider configProvider,
         SignalBus signalBus)
     {
         _asteroidFactory = asteroidFactory;
         _ufoFactory = ufoFactory;
-        _configFacade = configFacade;
+        _configProvider = configProvider;
         _signalBus = signalBus;
     }
 
     public AsteroidSpawner BuildAsteroidSpawner(WorldBoundary worldBoundary, EnemyCounterTracker enemyCounterTracker)
     {
-        AsteroidSpawner spawner = new AsteroidSpawner(_asteroidFactory, worldBoundary,
-            _configFacade.Enemy.AsteroidSpeed, enemyCounterTracker, _signalBus);
-        AsteroidSplitter splitter = new AsteroidSplitter(_asteroidFactory, spawner.AsteroidPool);
+        var spawner = new AsteroidSpawner(_asteroidFactory, worldBoundary,
+            _configProvider.Enemy.AsteroidSpeed, enemyCounterTracker, _signalBus, _configProvider.Enemy.MinSpawnDelay,
+            _configProvider.Enemy.MaxSpawnDelay);
+
+
+        var splitter = new AsteroidSplitter(_asteroidFactory, spawner.AsteroidPool,
+            _configProvider.Enemy.FragmentsPerSplit, _configProvider.Enemy.SmallerFragmentSpeedMultiplier);
         spawner.SetSplitter(splitter);
         spawner.StartSpawning();
         return spawner;
@@ -28,7 +32,7 @@ public class EnemySystemBuilder
 
     public UfoSpawner BuildUfoSpawner(WorldBoundary worldBoundary, EnemyCounterTracker enemyCounterTracker)
     {
-        UfoSpawner spawner = new UfoSpawner(_ufoFactory, worldBoundary, enemyCounterTracker, _signalBus);
+        var spawner = new UfoSpawner(_ufoFactory, worldBoundary, enemyCounterTracker, _signalBus);
         spawner.StartSpawning();
         return spawner;
     }

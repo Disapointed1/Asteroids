@@ -4,59 +4,58 @@ public class WorldBoundary
 {
     private const float SpawnMargin = 1f;
 
-    private readonly float _halfWidth;
-    private readonly float _halfHeight;
-
-    public float HalfWidth => _halfWidth;
-    public float HalfHeight => _halfHeight;
-
     public WorldBoundary(float width, float height)
     {
-        _halfWidth = width / 2f;
-        _halfHeight = height / 2f;
+        HalfWidth = width / 2f;
+        HalfHeight = height / 2f;
     }
+
+    public float HalfWidth { get; }
+
+    public float HalfHeight { get; }
 
     public void WrapPosition(PhysicsMovement body)
     {
-        Vector2 position = body.Position;
+        var position = body.Position;
 
-        if (position.x > _halfWidth)
-            position.x = -_halfWidth;
-        else if (position.x < -_halfWidth)
-            position.x = _halfWidth;
+        if (position.x > HalfWidth)
+            position.x = -HalfWidth;
+        else if (position.x < -HalfWidth)
+            position.x = HalfWidth;
 
-        if (position.y > _halfHeight)
-            position.y = -_halfHeight;
-        else if (position.y < -_halfHeight)
-            position.y = _halfHeight;
+        if (position.y > HalfHeight)
+            position.y = -HalfHeight;
+        else if (position.y < -HalfHeight)
+            position.y = HalfHeight;
 
         body.Position = position;
     }
 
     public Vector2 GetRandomPositionOutside()
     {
-        int side = Random.Range(0, 4);
+        var side = (Side)Random.Range(0, 4);
         float x, y;
 
         switch (side)
         {
-            case 0:
-                x = Random.Range(-_halfWidth, _halfWidth);
-                y = _halfHeight + SpawnMargin;
+            case Side.Top:
+                x = Random.Range(-HalfWidth, HalfWidth);
+                y = HalfHeight + SpawnMargin;
                 break;
-            case 1:
-                x = Random.Range(-_halfWidth, _halfWidth);
-                y = -_halfHeight - SpawnMargin;
+            case Side.Bottom:
+                x = Random.Range(-HalfWidth, HalfWidth);
+                y = -HalfHeight - SpawnMargin;
                 break;
-            case 2:
-                x = -_halfWidth - SpawnMargin;
-                y = Random.Range(-_halfHeight, _halfHeight);
+            case Side.Left:
+                x = -HalfWidth - SpawnMargin;
+                y = Random.Range(-HalfHeight, HalfHeight);
                 break;
             default:
-                x = _halfWidth + SpawnMargin;
-                y = Random.Range(-_halfHeight, _halfHeight);
+                x = HalfWidth + SpawnMargin;
+                y = Random.Range(-HalfHeight, HalfHeight);
                 break;
         }
+
         return new Vector2(x, y);
     }
 }

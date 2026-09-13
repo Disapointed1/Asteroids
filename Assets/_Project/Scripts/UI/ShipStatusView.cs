@@ -11,6 +11,11 @@ public class ShipStatusView : MonoBehaviour
 
     private ShipStatusViewModel _viewModel;
 
+    private void Update()
+    {
+        _viewModel.Tick();
+    }
+
     public void Initialize(ShipStatusViewModel viewModel)
     {
         _viewModel = viewModel;
@@ -25,10 +30,4 @@ public class ShipStatusView : MonoBehaviour
         _countLaserText.text = _viewModel.CurrentLaserCountText;
         _timeLaserText.text = _viewModel.LaserRechargeText;
     }
-
-    private void Update()
-    {
-        _viewModel.Tick();
-    }
-
 }

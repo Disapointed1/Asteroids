@@ -15,7 +15,7 @@ public class PhysicsMovement
         Velocity = Vector2.ClampMagnitude(Velocity, MaxSpeed);
     }
 
-public void ApplyAcceleration(Vector2 acceleration, float deltaTime)
+    public void ApplyAcceleration(Vector2 acceleration, float deltaTime)
     {
         Velocity += acceleration * deltaTime;
     }
@@ -27,6 +27,6 @@ public void ApplyAcceleration(Vector2 acceleration, float deltaTime)
 
     public void ApplyDrag(float deltaTime)
     {
-        Velocity *= ( 1 - DragCoefficient * deltaTime);
+        Velocity *= 1 - DragCoefficient * deltaTime;
     }
 }

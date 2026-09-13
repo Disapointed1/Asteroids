@@ -5,5 +5,13 @@
   "AsteroidMediumRadius": 0.6,
   "AsteroidSmallRadius": 0.3,
   "UfoRadius": 0.4,
-  "UfoMass": 1
+  "UfoMass": 1,
+  "MinSpawnDelay" : 1,
+  "MaxSpawnDelay" : 5,
+  "FragmentsPerSplit" : 2,
+  "SmallerFragmentSpeedMultiplier" : 1.5,
+  "AsteroidLargeReward" : 20,
+  "AsteroidMediumReward" : 50,
+  "AsteroidSmallReward" : 100,
+  "UfoReward" : 200
 }

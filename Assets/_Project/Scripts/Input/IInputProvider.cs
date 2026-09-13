@@ -2,8 +2,8 @@ using UnityEngine;
 
 public interface IInputProvider
 {
-   Vector2 GetMovementInput();
-   float GetRotationInput();
-   bool GetFireInput();
-   bool GetLaserInput();
+    Vector2 GetMovementInput();
+    float GetRotationInput();
+    bool GetFireInput();
+    bool GetLaserInput();
 }

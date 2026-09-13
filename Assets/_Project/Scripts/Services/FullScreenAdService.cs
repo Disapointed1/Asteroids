@@ -1,18 +1,18 @@
-using UnityEngine;
 using System;
 using GoogleMobileAds.Api;
+using UnityEngine;
 
 public class FullScreenAdService : MonoBehaviour
 {
     private const string AdUnitId = "ca-app-pub-3940256099942544/1033173712";
     private InterstitialAd _interstitialAd;
 
-    public event Action OnAdClosed;
-
     private void Start()
     {
-        MobileAds.Initialize(initStatus => {LoadAd();});
+        MobileAds.Initialize(initStatus => { LoadAd(); });
     }
+
+    public event Action OnAdClosed;
 
     private void LoadAd()
     {
@@ -22,7 +22,7 @@ public class FullScreenAdService : MonoBehaviour
             _interstitialAd = null;
         }
 
-        AdRequest request = new AdRequest();
+        var request = new AdRequest();
 
         InterstitialAd.Load(AdUnitId, request, (ad, error) =>
         {
@@ -39,14 +39,10 @@ public class FullScreenAdService : MonoBehaviour
 
     public void ShowAd()
     {
-        if (_interstitialAd != null &&  _interstitialAd.CanShowAd())
-        {
+        if (_interstitialAd != null && _interstitialAd.CanShowAd())
             _interstitialAd.Show();
-        }
         else
-        {
             OnAdClosed?.Invoke();
-        }
     }
 
     private void HandleAdClosed()
@@ -54,5 +50,4 @@ public class FullScreenAdService : MonoBehaviour
         OnAdClosed?.Invoke();
         LoadAd();
     }
-
 }

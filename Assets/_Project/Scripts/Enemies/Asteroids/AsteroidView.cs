@@ -6,6 +6,11 @@ public class AsteroidView : MonoBehaviour
 
     private Asteroid _asteroid;
 
+    private void FixedUpdate()
+    {
+        _rigidBody.MovePosition(_asteroid.Physics.Position);
+    }
+
     public void Initialize(Asteroid asteroid)
     {
         _asteroid = asteroid;
@@ -16,18 +21,13 @@ public class AsteroidView : MonoBehaviour
     private void HandleSpawned()
     {
         gameObject.SetActive(true);
-        transform.localScale = Vector3.one *  _asteroid.Physics.Radius;
+        transform.localScale = Vector3.one * _asteroid.Physics.Radius;
         SyncPosition();
     }
 
     private void HandleReturned()
     {
         gameObject.SetActive(false);
-    }
-
-    private void FixedUpdate()
-    {
-        _rigidBody.MovePosition(_asteroid.Physics.Position);
     }
 
     private void SyncPosition()

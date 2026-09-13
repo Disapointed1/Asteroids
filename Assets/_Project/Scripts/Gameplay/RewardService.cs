@@ -2,17 +2,21 @@ using System.Collections.Generic;
 
 public class RewardService
 {
-    private readonly Dictionary<EnemyType,int> _rewards = new Dictionary<EnemyType, int>()
+    private readonly Dictionary<EnemyType, int> _rewards;
+
+    public RewardService(int asteroidLargeReward, int asteroidMediumReward, int asteroidSmallReward, int ufoReward)
     {
-        {EnemyType.AsteroidLarge, 20},
-        { EnemyType.AsteroidMedium , 50},
-        { EnemyType.AsteroidSmall , 100},
-        { EnemyType.Ufo , 200}
-    };
+        _rewards = new Dictionary<EnemyType, int>
+        {
+            { EnemyType.AsteroidLarge, asteroidLargeReward },
+            { EnemyType.AsteroidMedium, asteroidMediumReward },
+            { EnemyType.AsteroidSmall, asteroidSmallReward },
+            { EnemyType.Ufo, ufoReward }
+        };
+    }
 
     public int GetReward(EnemyType type)
     {
         return _rewards[type];
     }
-
 }

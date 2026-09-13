@@ -4,20 +4,26 @@ using UnityEngine;
 public class CollisionSystem
 {
     private const float LaserRange = 20f;
-
-    private readonly Ship _ship;
-    private readonly ObjectPool<Bullet> _bulletPool;
     private readonly ObjectPool<Asteroid> _asteroidPool;
-    private readonly ObjectPool<Ufo> _ufoPool;
+    private readonly List<Asteroid> _asteroidsToHit = new();
+    private readonly ObjectPool<Bullet> _bulletPool;
+    private readonly List<Bullet> _bulletsToReturn = new();
     private readonly CollisionDetector _collisionDetector;
     private readonly CollisionResolver _collisionResolver;
-    private readonly GameScore _score;
-    private readonly RewardService _rewardService;
-    private readonly float _ufoChaseSpeed;
+    private readonly List<Asteroid> _laserAsteroidsToHit = new();
+    private readonly List<Ufo> _laserUfosToHit = new();
     private readonly LaserWeapon _laserWeapon;
+    private readonly RewardService _rewardService;
+    private readonly GameScore _score;
+
+    private readonly Ship _ship;
+    private readonly float _ufoChaseSpeed;
+    private readonly ObjectPool<Ufo> _ufoPool;
+    private readonly List<Ufo> _ufosToHit = new();
 
     public CollisionSystem(Ship ship, ObjectPool<Bullet> bulletPool, ObjectPool<Asteroid> asteroidPool,
-        ObjectPool<Ufo> ufoPool, GameScore score, RewardService rewardService, float ufoChaseSpeed, LaserWeapon laserWeapon,
+        ObjectPool<Ufo> ufoPool, GameScore score, RewardService rewardService, float ufoChaseSpeed,
+        LaserWeapon laserWeapon,
         CollisionDetector collisionDetector, CollisionResolver collisionResolver)
     {
         _ship = ship;
@@ -35,117 +41,99 @@ public class CollisionSystem
 
     public void CheckCollisions()
     {
-        List<Bullet> bulletsToReturn = new List<Bullet>();
-        List<Asteroid> asteroidsToHit = new List<Asteroid>();
-        List<Ufo> ufosToHit = new List<Ufo>();
+        _bulletsToReturn.Clear();
+        _asteroidsToHit.Clear();
+        _ufosToHit.Clear();
 
-        float deltaTime = Time.fixedDeltaTime;
+        var deltaTime = Time.fixedDeltaTime;
 
-        foreach (Bullet bullet in _bulletPool.InUseObjects)
+        foreach (var bullet in _bulletPool.InUseObjects)
             bullet.Physics.UpdatePosition(deltaTime);
 
-        foreach (Asteroid asteroid in _asteroidPool.InUseObjects)
+        foreach (var asteroid in _asteroidPool.InUseObjects)
             asteroid.Physics.UpdatePosition(deltaTime);
 
-        foreach (Ufo ufo in _ufoPool.InUseObjects)
+        foreach (var ufo in _ufoPool.InUseObjects)
         {
             ufo.Chase(_ship.Physics.Position, _ufoChaseSpeed, deltaTime);
             ufo.Physics.UpdatePosition(deltaTime);
         }
 
-        foreach (Bullet bullet in _bulletPool.InUseObjects)
+        foreach (var bullet in _bulletPool.InUseObjects)
         {
-            foreach (Asteroid asteroid in _asteroidPool.InUseObjects)
-            {
+            foreach (var asteroid in _asteroidPool.InUseObjects)
                 if (_collisionDetector.CheckCollision(bullet.Physics, asteroid.Physics))
                 {
-                    asteroidsToHit.Add(asteroid);
-                    bulletsToReturn.Add(bullet);
+                    _asteroidsToHit.Add(asteroid);
+                    _bulletsToReturn.Add(bullet);
                 }
-            }
 
-            foreach (Ufo ufo in _ufoPool.InUseObjects)
-            {
+            foreach (var ufo in _ufoPool.InUseObjects)
                 if (_collisionDetector.CheckCollision(bullet.Physics, ufo.Physics))
                 {
-                    ufosToHit.Add(ufo);
-                    bulletsToReturn.Add(bullet);
+                    _ufosToHit.Add(ufo);
+                    _bulletsToReturn.Add(bullet);
                 }
-            }
         }
 
-        foreach (Bullet bullet in bulletsToReturn)
-        {
-            _bulletPool.Return(bullet);
-        }
+        foreach (var bullet in _bulletsToReturn) _bulletPool.Return(bullet);
 
-        foreach (Asteroid asteroid in asteroidsToHit)
-        {
-            ApplyReward(asteroid);
-            asteroid.TakeHit();
-        }
+        DestroyEnemies(_asteroidsToHit);
+        DestroyEnemies(_ufosToHit);
 
-        foreach (Ufo ufo in ufosToHit)
-        {
-            ApplyReward(ufo);
-            ufo.TakeHit();
-        }
-
-        foreach (Asteroid asteroid in _asteroidPool.InUseObjects)
-        {
+        foreach (var asteroid in _asteroidPool.InUseObjects)
             if (!_ship.IsInvulnerable && _collisionDetector.CheckCollision(_ship.Physics, asteroid.Physics))
             {
                 _collisionResolver.ResolveCollision(_ship.Physics, asteroid.Physics);
                 _ship.TakeDamage(1);
             }
-        }
 
-        foreach (Ufo ufo in _ufoPool.InUseObjects)
-        {
+        foreach (var ufo in _ufoPool.InUseObjects)
             if (!_ship.IsInvulnerable && _collisionDetector.CheckCollision(_ship.Physics, ufo.Physics))
             {
                 _collisionResolver.ResolveCollision(_ship.Physics, ufo.Physics);
                 _ship.TakeDamage(1);
             }
-        }
+    }
+
+    public void Dispose()
+    {
+        _laserWeapon.OnFired -= HandleLaserFired;
     }
 
     private void HandleLaserFired()
     {
-        Vector2 direction = DirectionMath.FromAngle(_ship.Rotation);
-        Vector2 start = _ship.Physics.Position;
-        Vector2 end = start + direction * LaserRange;
+        var direction = DirectionMath.FromAngle(_ship.Rotation);
+        var start = _ship.Physics.Position;
+        var end = start + direction * LaserRange;
 
-        List<Asteroid> asteroidsToHit = new List<Asteroid>();
-        foreach (Asteroid asteroid in _asteroidPool.InUseObjects)
-        {
+        _laserAsteroidsToHit.Clear();
+        _laserUfosToHit.Clear();
+
+        foreach (var asteroid in _asteroidPool.InUseObjects)
             if (_collisionDetector.CheckLaserHit(start, end, asteroid.Physics))
-                asteroidsToHit.Add(asteroid);
-        }
+                _laserAsteroidsToHit.Add(asteroid);
 
-        List<Ufo> ufosToHit = new List<Ufo>();
-        foreach (Ufo ufo in _ufoPool.InUseObjects)
-        {
+        foreach (var ufo in _ufoPool.InUseObjects)
             if (_collisionDetector.CheckLaserHit(start, end, ufo.Physics))
-                ufosToHit.Add(ufo);
-        }
+                _laserUfosToHit.Add(ufo);
 
-        foreach (Asteroid asteroid in asteroidsToHit)
-        {
-            ApplyReward(asteroid);
-            asteroid.TakeHit();
-        }
-
-        foreach (Ufo ufo in ufosToHit)
-        {
-            ApplyReward(ufo);
-            ufo.TakeHit();
-        }
+        DestroyEnemies(_laserAsteroidsToHit);
+        DestroyEnemies(_laserUfosToHit);
     }
 
     private void ApplyReward(IRewardable rewardable)
     {
-        int reward = _rewardService.GetReward(rewardable.Type);
+        var reward = _rewardService.GetReward(rewardable.Type);
         _score.AddScore(reward);
+    }
+
+    private void DestroyEnemies<T>(List<T> enemiesToHit) where T : IEnemy
+    {
+        foreach (var enemy in enemiesToHit)
+        {
+            ApplyReward(enemy);
+            enemy.TakeHit();
+        }
     }
 }
