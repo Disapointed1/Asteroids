@@ -18,4 +18,9 @@ public class GameScoreView : MonoBehaviour
     {
         _scoreText.text = _viewModel.ScoreText;
     }
+
+    private void OnDestroy()
+    {
+        _viewModel.OnScoreChanged -= UpdateDisplay;
+    }
 }

@@ -14,6 +14,7 @@ public class GameBootstrapper : IInitializable
     private readonly GameScoreView _gameScoreView;
     private readonly InputProviderFactory _inputProviderFactory;
     private readonly PauseService _pauseService;
+    private readonly AsteroidFactory _asteroidFactory;
 
     private readonly PlayerBuilder _playerBuilder;
     private readonly SceneLoader _sceneLoader;
@@ -26,7 +27,7 @@ public class GameBootstrapper : IInitializable
         GameOverView gameOverView,
         FullScreenAdService fullScreenAdService, SignalBus signalBus, GameConfigProvider gameConfigProvider,
         Camera camera,
-        FirebaseAnalyticsService firebaseAnalyticsService, SceneLoader sceneLoader, PauseService pauseService)
+        FirebaseAnalyticsService firebaseAnalyticsService, SceneLoader sceneLoader, PauseService pauseService, AsteroidFactory asteroidFactory)
     {
         _playerBuilder = playerBuilder;
         _enemySystemBuilder = enemySystemBuilder;
@@ -42,6 +43,7 @@ public class GameBootstrapper : IInitializable
         _firebaseAnalyticsService = firebaseAnalyticsService;
         _sceneLoader = sceneLoader;
         _pauseService = pauseService;
+        _asteroidFactory =  asteroidFactory;
     }
 
     public void Initialize()
@@ -60,7 +62,7 @@ public class GameBootstrapper : IInitializable
         var asteroidSpawner = _enemySystemBuilder.BuildAsteroidSpawner(worldBoundary, enemyCounterTracker);
         var ufoSpawner = _enemySystemBuilder.BuildUfoSpawner(worldBoundary, enemyCounterTracker);
 
-        var score = _gameplaySystemBuilder.Build(ship, shipWeapon.BulletPool, asteroidSpawner.AsteroidPool,
+        var score = _gameplaySystemBuilder.Build(ship, shipWeapon.BulletPool, _asteroidFactory,
             ufoSpawner.UfoPool, laserWeapon, out var collisionSystem);
 
         var gameScoreViewModel = new GameScoreViewModel(score);

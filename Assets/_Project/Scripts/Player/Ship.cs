@@ -47,7 +47,7 @@ public class Ship : IShipInfo
         if (Health <= 0)
             OnDied?.Invoke();
         else
-            InvulnerabilityTimer(_cts.Token).Forget();
+            InvulnerabilityTimer(_cts.Token).Forget(ex => Debug.LogException(ex));
     }
 
     public void ApplyRotation(float rotation)

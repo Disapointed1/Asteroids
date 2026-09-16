@@ -43,6 +43,9 @@ public class ObjectPool<T> where T : IPoolable
 
     public void Register(T item)
     {
+        if (_inUseObjects.Contains(item) || _availableObjects.Contains(item))
+            return;
+
         _inUseObjects.Add(item);
     }
 }

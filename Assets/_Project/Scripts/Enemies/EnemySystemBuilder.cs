@@ -23,7 +23,7 @@ public class EnemySystemBuilder
             _configProvider.Enemy.MaxSpawnDelay);
 
 
-        var splitter = new AsteroidSplitter(_asteroidFactory, spawner.AsteroidPool,
+        var splitter = new AsteroidSplitter(_asteroidFactory,
             _configProvider.Enemy.FragmentsPerSplit, _configProvider.Enemy.SmallerFragmentSpeedMultiplier);
         spawner.SetSplitter(splitter);
         spawner.StartSpawning();

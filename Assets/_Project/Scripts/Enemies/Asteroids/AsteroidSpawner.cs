@@ -15,11 +15,11 @@ public class AsteroidSpawner
     private readonly float _minSpawnDelay;
     private readonly SignalBus _signalBus;
     private AsteroidSplitter _asteroidSplitter;
+    private AsteroidFactory _asteroidFactory;
 
     public AsteroidSpawner(AsteroidFactory asteroidFactory, WorldBoundary boundary, float asteroidSpeed,
         EnemyCounterTracker enemyCounter, SignalBus signalBus, float minSpawnDelay, float maxSpawnDelay)
     {
-        AsteroidPool = new ObjectPool<Asteroid>(() => asteroidFactory.Create(AsteroidSize.Large));
         _boundary = boundary;
         _asteroidSpeed = asteroidSpeed;
         _enemyCounter = enemyCounter;
@@ -27,9 +27,9 @@ public class AsteroidSpawner
         _signalBus.Subscribe<GameOverSignal>(HandleGameOver);
         _minSpawnDelay = minSpawnDelay;
         _maxSpawnDelay = maxSpawnDelay;
+        _asteroidFactory = asteroidFactory;
     }
 
-    public ObjectPool<Asteroid> AsteroidPool { get; }
 
     public void StartSpawning()
     {
@@ -51,7 +51,7 @@ public class AsteroidSpawner
             if (!_enemyCounter.CanSpawn())
                 continue;
 
-            var asteroid = AsteroidPool.Get();
+            var asteroid = _asteroidFactory.Get(AsteroidSize.Large);
             asteroid.OnDestroyed += HandleAsteroidDestroyed;
             var position = _boundary.GetRandomPositionOutside();
             asteroid.Spawn(position, _asteroidSpeed);
@@ -64,7 +64,7 @@ public class AsteroidSpawner
         asteroid.OnDestroyed -= HandleAsteroidDestroyed;
         var position = asteroid.Physics.Position;
         var wasFragment = asteroid.IsFragment;
-        AsteroidPool.Return(asteroid);
+        _asteroidFactory.Return(asteroid);
 
         if (!wasFragment)
             _enemyCounter.RegisterDestroyed();
@@ -75,6 +75,7 @@ public class AsteroidSpawner
 
     private void HandleGameOver()
     {
+        _signalBus.Unsubscribe<GameOverSignal>(HandleGameOver);
         _cts.Cancel();
     }
 }

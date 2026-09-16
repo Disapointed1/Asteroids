@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 public class GameplaySystemBuilder
 {
     private readonly GameConfigProvider _configProvider;
@@ -14,7 +16,7 @@ public class GameplaySystemBuilder
         _resolver = resolver;
     }
 
-    public GameScore Build(Ship ship, ObjectPool<Bullet> bulletPool, ObjectPool<Asteroid> asteroidPool,
+    public GameScore Build(Ship ship, ObjectPool<Bullet> bulletPool, AsteroidFactory asteroidFactory,
         ObjectPool<Ufo> ufoPool, LaserWeapon laserWeapon, out CollisionSystem collisionSystem)
     {
         var score = new GameScore();
@@ -24,10 +26,19 @@ public class GameplaySystemBuilder
             _configProvider.Enemy.AsteroidSmallReward,
             _configProvider.Enemy.UfoReward);
 
+        var bulletHandler =
+            new BulletCollisionHandler(bulletPool, asteroidFactory, ufoPool, _detector, rewardService, score);
+        var shipHandler = new ShipCollisionHandler(ship, asteroidFactory, ufoPool, _detector, _resolver);
+        var laserHandler = new LaserCollisionHandler(ship, asteroidFactory, ufoPool, _detector, laserWeapon,
+            rewardService, score);
 
-        collisionSystem = new CollisionSystem(ship, bulletPool, asteroidPool, ufoPool, score,
-            rewardService, _configProvider.Enemy.UfoSpeed, laserWeapon, _detector, _resolver);
-        _ticker.Initialize(collisionSystem);
+        var handlers = new List<ICollisionHandler> { bulletHandler, shipHandler };
+        collisionSystem = new CollisionSystem(handlers, laserHandler);
+
+        var bulletMovementSystem = new BulletMovementSystem(bulletPool);
+        var enemyMovementSystem =
+            new EnemyMovementSystem(ship, asteroidFactory, ufoPool, _configProvider.Enemy.UfoSpeed);
+        _ticker.Initialize(collisionSystem, bulletMovementSystem, enemyMovementSystem);
 
         return score;
     }

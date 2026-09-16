@@ -59,6 +59,7 @@ public class UfoSpawner
 
     private void HandleGameOver()
     {
+        _signalBus.Unsubscribe<GameOverSignal>(HandleGameOver);
         _cts.Cancel();
     }
 }
