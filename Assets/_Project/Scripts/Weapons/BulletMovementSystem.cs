@@ -10,6 +10,8 @@ public class BulletMovementSystem
     public void UpdateMovement(float deltaTime)
     {
         foreach (var bullet in _bulletPool.InUseObjects)
+        {
             bullet.Physics.UpdatePosition(deltaTime);
+        }
     }
 }

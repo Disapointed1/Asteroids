@@ -46,5 +46,6 @@
         {
             _laserWeapon.OnFired -= HandleLaserFired;
             _cts.Cancel();
+            _cts.Dispose();
         }
     }

@@ -16,7 +16,9 @@ public class EnemyMovementSystem
     public void UpdateMovement(float deltaTime)
     {
         foreach (var asteroid in _asteroidFactory.GetAllInUseObjects())
+        {
             asteroid.Physics.UpdatePosition(deltaTime);
+        }
 
         foreach (var ufo in _ufoPool.InUseObjects)
         {

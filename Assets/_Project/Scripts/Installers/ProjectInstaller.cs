@@ -41,5 +41,6 @@ public class ProjectInstaller : MonoInstaller
         Container.Bind<FirebaseAnalyticsService>().AsSingle();
         Container.Bind<SceneLoader>().AsSingle();
         Container.Bind<PauseService>().AsSingle();
+        Container.Bind<LevelFactory>().AsSingle();
     }
 }

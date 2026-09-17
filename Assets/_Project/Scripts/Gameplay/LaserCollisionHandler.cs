@@ -1,6 +1,7 @@
+using System;
 using System.Collections.Generic;
 
-public class LaserCollisionHandler
+public class LaserCollisionHandler : IDisposable
 {
     private const float LaserRange = 20f;
 
